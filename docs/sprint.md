@@ -77,8 +77,10 @@
 | Field | Value |
 |---|---|
 | Priority | P2 |
-| Status | ⬜ To Do |
-| Impacted docs | `ops.md`, `flow.md`, `test-plan.md` |
+| Status | 🟡 Partial (Code & local QA ✅; Vercel deploy user-executed ⬜) |
+| Authorization / Blockers | Tier 2 · User opted to deploy to Vercel themselves after local QA |
+| Impacted docs | `ops.md`, `flow.md`, `test-plan.md`, `dsd.md`, `evidence.md`, `foundation.md`, `security.md` |
+| Completion evidence | `npm test` (`26/26` incl. `sound-effects.test.ts`), Playwright QA (`verify-boom-06.mjs`, `2026-11-17`): `Sound On`/`Muted` reload persist, `reducedMotion`, question Edit (`PATCH`), WCAG contrast (`5.1:1–6.17:1` normal, `4.46:1` large `h1`), `0` pageErrors; `lint`, `tsc`, `build`, `check-docs.mjs` exit `0` |
 | Traces | `BR-06` · `US-08` |
 
 ---
@@ -94,3 +96,4 @@
 | 2026-11-17 | `BOOM-04` player UI (`/`, `/lobby`, `/play`, `/result`, `/scoreboard`), `BombTimer`, `useSessionRealtime`, & `GET /api/session/me` built (`19/19` Vitest + `build` pass; live browser E2E `T-005` pending) → `🟡 Partial` | Phase 4 player UI | `BOOM-04` |
 | 2026-11-17 | `BOOM-04` verified via Playwright headless E2E (`360x780` & `1280x800`, Realtime, reload reconnect, one-play lock, DOM anti-slop checks) → `✅ Done` | Phase 4 player E2E | `BOOM-04` |
 | 2026-11-17 | `BOOM-05` facilitator auth (`ADR-0002`), `/admin` routes, `/api/admin/*`, Realtime handshake fix, & Playwright E2E (`24/24` Vitest + `T-006`) → `✅ Done` | Phase 4 admin panel | `BOOM-05` |
+| 2026-11-17 | `BOOM-06` `SoundToggle`, Web Audio SFX, `framer-motion` polish, `C-01` contrast + question Edit QA (`26/26` Vitest + Playwright) → `🟡 Partial` (Vercel deploy left to user) | Phase 5 polish & QA | `BOOM-06` |

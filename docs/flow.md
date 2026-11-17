@@ -12,7 +12,7 @@
 
 > **Purpose.** Honest status map of what is built (`✅`), partial (`🟡`), or planned (`⬜`). Marks match [`grounding.md`](grounding.md) §3.
 
-**Operating boundary:** Phase 1–4 + `BOOM-05` (`/`, `/lobby`, `/play`, `/result`, `/scoreboard`, `/admin`, `/admin/dashboard`, `/admin/questions`) built & E2E-verified locally against remote Supabase `zamxjnsxmtsreknsqrwj` (`2026-11-17`). Not deployed to Vercel; `BOOM-06` sound/motion polish & deploy pending.
+**Operating boundary:** All MVP features (`BOOM-01..BOOM-05` + `BOOM-06` sound toggle, Framer Motion polish, & QA) built & verified locally against remote Supabase `zamxjnsxmtsreknsqrwj` (`2026-11-17`). Vercel deployment remains user-executed (`⬜`).
 
 ---
 
@@ -45,7 +45,7 @@ flowchart TB
 | Synchronized 3-2-1 countdown & server-deadline `/play` race | Must | ✅ | `src/app/play/page.tsx`, `src/components/play-view.tsx`, `src/components/bomb-timer.tsx` | `npm test` (`T-001`, `T-004`), Playwright E2E (`2026-11-17`) |
 | One-play-only lock, `/result`, & `/scoreboard` | Must | ✅ | `src/app/result/page.tsx`, `src/app/scoreboard/page.tsx` | `npm test` (`T-003`), Playwright E2E `T-005` (`2026-11-17`) |
 | Admin passcode auth, session controls, & question CRUD | Must | ✅ | `src/lib/admin-auth.ts`, `src/lib/admin-service.ts`, `src/app/admin/**`, `src/app/api/admin/**` | `npm test` (`T-006`), Playwright E2E (`2026-11-17`) |
-| Sound toggle & Framer Motion polish | Should | ⬜ planned | `⬜` | — |
+| Sound toggle & Framer Motion polish | Should | ✅ | `src/lib/sound-effects.ts`, `src/components/sound-toggle.tsx`, `play-view.tsx`, `result-view.tsx` | `npm test` (`26/26`), Playwright E2E (`Sound On`/`Muted` reload + `reducedMotion`) |
 
 ## 3. Verification Commands
 

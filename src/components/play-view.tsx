@@ -1,8 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BombTimer } from "@/components/bomb-timer";
+import { SoundToggle } from "@/components/sound-toggle";
+import { playSoundEffect } from "@/lib/sound-effects";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import type {
   ApiErrorEnvelope,
@@ -25,6 +28,7 @@ function computeServerOffsetMs(serverNowIso: string): number {
 
 export function PlayView() {
   const router = useRouter();
+  const prefersReducedMotion = useReducedMotion();
   const [question, setQuestion] = useState<PublicQuestion | null>(null);
   const [deadlineIso, setDeadlineIso] = useState<string | null>(null);
   const [serverOffsetMs, setServerOffsetMs] = useState(0);
@@ -199,6 +203,7 @@ export function PlayView() {
       }
 
       if (data.correct) {
+        playSoundEffect("correct");
         const bonusNote =
           data.streakBonusAwarded > 0
             ? ` · +${data.streakBonusAwarded} streak bonus!`
@@ -208,6 +213,7 @@ export function PlayView() {
           text: `Correct! +30s fuse${bonusNote}`,
         });
       } else {
+        playSoundEffect("wrong");
         setFeedback({
           tone: "wrong",
           text: "Not quite — streak reset",
@@ -238,6 +244,10 @@ export function PlayView() {
   return (
     <main className="flex-1 flex items-center justify-center px-4 py-6 sm:py-10">
       <section className="w-full max-w-2xl rounded-3xl bg-surface border border-border-ash p-5 sm:p-8 space-y-6">
+        <div className="flex items-center justify-end">
+          <SoundToggle />
+        </div>
+
         {deadlineIso ? (
           <BombTimer
             deadlineIso={deadlineIso}
@@ -267,19 +277,32 @@ export function PlayView() {
           </div>
         </div>
 
-        {feedback ? (
-          <div
-            role="status"
-            aria-live="polite"
-            className={`rounded-2xl px-4 py-3 text-sm font-bold border ${
-              feedback.tone === "correct"
-                ? "bg-surface-elevated border-success-green text-success-green"
-                : "bg-surface-elevated border-danger-red text-danger-red"
-            }`}
-          >
-            {feedback.text}
-          </div>
-        ) : null}
+        <AnimatePresence mode="wait">
+          {feedback ? (
+            <motion.div
+              key={feedback.text}
+              role="status"
+              aria-live="polite"
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 8, scale: 0.96 }}
+              animate={
+                prefersReducedMotion
+                  ? { opacity: 1 }
+                  : feedback.tone === "wrong"
+                    ? { opacity: 1, x: [0, -6, 6, -4, 4, 0], y: 0, scale: 1 }
+                    : { opacity: 1, y: 0, scale: 1 }
+              }
+              exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
+              transition={{ duration: prefersReducedMotion ? 0.01 : 0.22 }}
+              className={`rounded-2xl px-4 py-3 text-sm font-bold border ${
+                feedback.tone === "correct"
+                  ? "bg-surface-elevated border-success-green text-success-green"
+                  : "bg-surface-elevated border-danger-red text-danger-red"
+              }`}
+            >
+              {feedback.text}
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
 
         {error ? (
           <p role="alert" className="text-sm font-semibold text-danger-red">
@@ -288,7 +311,13 @@ export function PlayView() {
         ) : null}
 
         {question ? (
-          <div className="space-y-4">
+          <motion.div
+            key={question.id}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: prefersReducedMotion ? 0.01 : 0.15 }}
+            className="space-y-4"
+          >
             <div className="flex items-center justify-between text-xs font-semibold text-text-muted uppercase tracking-wider">
               <span>{question.category}</span>
               <span>{question.difficulty}</span>
@@ -330,7 +359,7 @@ export function PlayView() {
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         ) : null}
       </section>
     </main>

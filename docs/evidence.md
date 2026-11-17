@@ -43,7 +43,7 @@ Scope this ledger to **empirical, business, comparative, regulatory, and perform
 
 | ID | Claim | Type | Used in (dependents) | Source | Status | Verified (rev / env / date) | Re-verify by |
 |---|---|---|---|---|---|---|---|
-| C-01 | `#14161F` Midnight Charcoal background + `#F5F7FA` Snow text / `#14161F` text on `#FF7A1A` Fuse Orange meet WCAG AA contrast (≥ 4.5:1) | Contrast math | `dsd.md` §2, `src/app/globals.css` | Calculated hex luminance vs `S-01` palette | **Not validated** by browser audit (math-checked) | `local · 2026-11-17` | Before Phase 4 sign-off |
+| C-01 | `#14161F` Midnight Charcoal background + `#F5F7FA` Snow text / `#14161F` text on `#FF7A1A` Fuse Orange meet WCAG AA contrast (≥ 4.5:1) | Contrast math | `dsd.md` §2, `src/app/globals.css` | Calculated hex luminance vs `S-01` palette + Playwright computed-style check (`minContrast` normal text `5.1:1–6.17:1`, large `h1` `4.46:1 >= 3.0:1`) | **Validated** (`Playwright DOM check`) | `local · 2026-11-17` | Before theme token edits |
 
 ---
 
@@ -69,7 +69,7 @@ Resolved versions come from **`package-lock.json`** (not memory). Planned Phase 
 | `typescript` | `5.9.3` | `package-lock.json` (`S-02`) | `https://www.typescriptlang.org/docs/` | `local · 2026-11-17` | Strict mode enabled |
 | `eslint` / `eslint-config-next` | `9.39.5` / `16.4.6` | `package-lock.json` (`S-02`) | `https://eslint.org/docs/latest/` | `local · 2026-11-17` | Core web vitals + TS lint |
 | `@supabase/supabase-js` | `2.119.0` | `package-lock.json` (`S-02`) | `https://supabase.com/docs/reference/javascript` | `local · 2026-11-17` | Server `service_role` repository (`BOOM-03`) + Realtime |
-| `framer-motion` | Not installed (Phase 4) | — | `https://motion.dev/docs` | `—` | Planned for BOOM / `+30s` / card motion |
+| `framer-motion` | `14.14.0` | `package-lock.json` (`S-02`) | `https://motion.dev/docs` | `local · 2026-11-17` | BOOM / `+30s` / shake / question polish with `useReducedMotion()` |
 | `vitest` | `3.2.4` | `package-lock.json` (`S-02`) | `https://vitest.dev/` | `local · 2026-11-17` | Dev test runner (`npm test`, Vite 6/Rollup) |
 | `playwright` | `1.65.1` | `package-lock.json` (`S-02`) | `https://playwright.dev/` | `local · 2026-11-17` | Dev browser E2E & DOM craft check (`BOOM-04`) |
 
@@ -95,5 +95,5 @@ Resolved versions come from **`package-lock.json`** (not memory). Planned Phase 
 ## Self-Check
 
 - [x] §5 installed versions match `package-lock.json`
-- [x] Uninstalled Phase 4 package (`framer-motion`) marked `Not installed`
-- [x] `A-03` decided (`2026-11-17`); `A-02` still open before `BOOM-05` admin build
+- [x] All MVP packages installed and resolved from `package-lock.json`
+- [x] `A-02` & `A-03` decided (`2026-11-17`); `C-01` validated in browser (`2026-11-17`)

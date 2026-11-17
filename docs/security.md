@@ -86,7 +86,7 @@ All optional modules inactive (`foundation.md` §0).
 
 | Review | Status | Env / Rev | Date | Reviewer | Notes |
 |---|---|---|---|---|---|
-| Dependency install audit | 🟡 Dev-only findings (`0` prod vulns) | `local` | `2026-11-17` | `npm audit --omit=dev` | `@supabase/supabase-js` (`0` prod vulns); `vitest@3.2.4` dev tooling flags `3` transitive dev findings (`1` mod, `2` crit) |
+| Dependency install audit | 🟡 Dev-only findings (`0` prod vulns) | `local` | `2026-11-17` | `npm audit --omit=dev` | `@supabase/supabase-js` + `framer-motion` (`0` prod vulns); `vitest@3.2.4` dev tooling flags `3` transitive dev findings (`1` mod, `2` crit) |
 | Threat model & RLS review | ✅ Verified (DB RLS + play API) | `zamxjnsxmtsreknsqrwj` | `2026-11-17` | Engineering | `anon` denied (`401`/`42501`) on `questions`, `player_answers`, and writes; `correct_index` absence verified (`T-004` + Playwright E2E) |
 | Authorization & negative tests | ✅ Pass (`T-001..T-006`) | `local` | `2026-11-17` | Vitest + Playwright | `24/24` Vitest + Playwright unauth `/api/admin/*` (`401`), `/admin/*` redirect, replay block, & expired deadline |
 

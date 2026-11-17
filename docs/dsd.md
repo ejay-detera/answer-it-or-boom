@@ -100,17 +100,17 @@ Dark Cartoon Bomb mode (`#14161F`) is the sole supported appearance (`✅` confi
 
 ## 6. Motion & Feedback
 
-`Framer Motion` (`⬜` to be installed in Phase 4) + CSS transitions:
-- Bomb fuse shrinks proportionally to remaining time; `+30s` floating indicator on correct answer; subtle shake on wrong answer; BOOM explosion on `0:00`.
-- `prefers-reduced-motion` rule already active in `src/app/globals.css` (`✅`).
+`Framer Motion` (`14.14.0` ✅) + CSS transitions:
+- Bomb fuse shrinks proportionally to remaining time; `+30s` floating indicator on correct answer; subtle shake on wrong answer; BOOM/victory reveal on `/result`.
+- `prefers-reduced-motion` rule active in `src/app/globals.css` and `useReducedMotion()` (`✅`).
 
 ---
 
 ## 7. Accessibility & Rendered Review
 
 Target: **[WCAG 2.2](https://www.w3.org/TR/2024/REC-WCAG22-20241212/) Level AA** + `>= 48px` mobile tap targets (`S-01` §9.4).
-**Verified:** `prefers-reduced-motion`, focus ring (`:focus-visible` Spark Yellow), zero monospace fonts (`layout.tsx`, `globals.css`), plus Playwright DOM checks (`2026-11-17`) across `/` `/lobby` `/play` `/result` (`360px`) & `/scoreboard` `/admin` `/admin/dashboard` `/admin/questions` (`1280px`): `0` monospace fonts, `0` backdrop-blur, `>= 48px` controls, `tabular-nums`, `0` horizontal overflow.
-**Not yet verified:** Automated WCAG contrast audit (`C-01`), full keyboard/screen-reader pass, and `BOOM-06` sound/motion polish.
+**Verified:** `prefers-reduced-motion`, focus ring (`:focus-visible` Spark Yellow), zero monospace fonts (`layout.tsx`, `globals.css`), `SoundToggle` (`min-h-12`), Framer Motion (`useReducedMotion()`), and Playwright DOM + WCAG AA contrast checks (`2026-11-17`: `minContrast` normal `5.1:1–6.17:1`, large `h1` `4.46:1 >= 3.0:1`, `0` mono, `0` blur, `>= 48px` controls, `tabular-nums`, `0` overflow).
+**Not yet verified:** Full screen-reader assistive-tech walkthrough and post-deploy Vercel production smoke check (`BOOM-06` deploy).
 
 ---
 
