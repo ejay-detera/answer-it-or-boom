@@ -53,7 +53,7 @@ Scope this ledger to **empirical, business, comparative, regulatory, and perform
 |---|---|---|---|---|---|---|---|
 | A-01 | Single active session at a time (no room codes in MVP) | Stated in `S-01` §6 | Concurrent cohorts would collide | Before multi-cohort pilot | Project Owner | `foundation.md`, `data-model.md`, `api.md` | Open |
 | A-02 | `ADMIN_PASSCODE` signed `httpOnly` cookie is preferred over Supabase Auth user accounts | Single facilitator account in `S-01` §4.2, §7 | Requires passcode rotation between events | Before Phase 3 admin build | Project Owner | `security.md`, `ADR-0002` | Open |
-| A-03 | Streak bonuses (`+5`, `+10`, `+20` at `3`, `5`, `10`) trigger at most once per milestone per run | Stated in `S-01` §3 ("one-time bonus at each milestone") | Scoring rules change if repeatable | Before Phase 3 engine TDD | Project Owner | `src/config/game-config.ts`, `test-plan.md` | Open |
+| A-03 | Streak bonuses (`+5`, `+10`, `+20` at `3`, `5`, `10`) trigger at most once per milestone per run | Stated in `S-01` §3 ("one-time bonus at each milestone") | Scoring rules change if repeatable | Validated in `game-rules.ts` (`bestStreak < milestone`) | Project Owner | `src/config/game-config.ts`, `src/lib/game-rules.ts`, `test-plan.md` | Decided (`2026-11-17`) |
 
 ---
 
@@ -68,9 +68,9 @@ Resolved versions come from **`package-lock.json`** (not memory). Planned Phase 
 | `tailwindcss` / `@tailwindcss/turbopack` | `4.3.3` | `package-lock.json` (`S-02`) | `https://tailwindcss.com/docs` | `local · 2026-11-17` | Tailwind v4 `@theme inline` CSS token config |
 | `typescript` | `5.9.3` | `package-lock.json` (`S-02`) | `https://www.typescriptlang.org/docs/` | `local · 2026-11-17` | Strict mode enabled |
 | `eslint` / `eslint-config-next` | `9.39.5` / `16.4.6` | `package-lock.json` (`S-02`) | `https://eslint.org/docs/latest/` | `local · 2026-11-17` | Core web vitals + TS lint |
-| `@supabase/supabase-js` | Not installed (Phase 2) | — | `https://supabase.com/docs/reference/javascript` | `—` | Planned for Postgres + Realtime |
+| `@supabase/supabase-js` | `2.119.0` | `package-lock.json` (`S-02`) | `https://supabase.com/docs/reference/javascript` | `local · 2026-11-17` | Server `service_role` repository (`BOOM-03`) + Realtime |
 | `framer-motion` | Not installed (Phase 4) | — | `https://motion.dev/docs` | `—` | Planned for BOOM / `+30s` / card motion |
-| `vitest` | Not installed (Phase 3) | — | `https://vitest.dev/` | `—` | Planned unit/contract test runner |
+| `vitest` | `3.2.4` | `package-lock.json` (`S-02`) | `https://vitest.dev/` | `local · 2026-11-17` | Dev test runner (`npm test`, Vite 6/Rollup) |
 
 ---
 
@@ -94,5 +94,5 @@ Resolved versions come from **`package-lock.json`** (not memory). Planned Phase 
 ## Self-Check
 
 - [x] §5 installed versions match `package-lock.json`
-- [x] Uninstalled Phase 2–4 packages marked `Not installed`
-- [x] Assumptions blocking Phase 3 (`A-02`, `A-03`) recorded in §4
+- [x] Uninstalled Phase 4 package (`framer-motion`) marked `Not installed`
+- [x] `A-03` decided (`2026-11-17`); `A-02` still open before `BOOM-05` admin build

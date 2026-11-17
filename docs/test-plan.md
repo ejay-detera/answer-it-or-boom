@@ -21,8 +21,8 @@
 | Level | Purpose | Tool | Command | In CI |
 |---|---|---|---|:---:|
 | Static (lint, types, build) | Catch syntax, TS, and Next.js bundle issues | ESLint, TypeScript, Next.js | `npm run lint`, `npx tsc --noEmit`, `npm run build` | Planned |
-| Unit & contract | Game rules (`game-rules.ts`), validation, service seams | Vitest (`⬜` Phase 3) | `N/A — Vitest installed in Phase 3` | Planned |
-| Security & auth negative | `correct_index` stripped, expired `deadline`, admin `401`, duplicate submit | Vitest / integration (`⬜`) | `N/A — Phase 3` | Planned |
+| Unit & contract | Game rules (`game-rules.ts`), validation, service seams | Vitest (`3.2.4` ✅) | `npm test` (`vitest run`) | Planned |
+| Security & auth negative | `correct_index` stripped, expired `deadline`, duplicate submit (`API-01..API-03` ✅; admin `401` `⬜`) | Vitest (`npm test`) | `npm test` | Planned |
 | End-to-end & DOM craft | Live sync, anti-slop CSS/DOM checks (`dsd.md` §1.1) | Playwright / manual (`⬜`) | `N/A — Phase 4` | Planned |
 | Doc integrity | Links, balanced fences, zero unfilled placeholders | `scripts/check-docs.mjs` | `node scripts/check-docs.mjs --mode=project` | Planned |
 
@@ -34,10 +34,10 @@ Tests run strictly against local or disposable test Supabase projects—never li
 
 | Requirement | Acceptance criterion | Test ID | Level | Status | Last run | Command |
 |---|---|---|---|---|---|---|
-| BR-02 / US-02 / BOOM-03 | `+10` pts, one-time streak bonuses, `+30s` fuse, `now > deadline` rejection | `T-001` | Unit | **Not written** (Phase 3) | — | — |
-| BR-01 / US-01 / BOOM-02 | Trim `2..20`, profanity, duplicate name, locked lobby rejection | `T-002` | Unit | **Not written** (Phase 3) | — | — |
-| BR-03 / US-04 / BOOM-04 | One-play-only enforcement & reconnect state restoration | `T-003` | Integration | **Not written** (Phase 3) | — | — |
-| BR-02 / US-03 / BOOM-03 | `correct_index` absent, no-repeat shuffle, pool exhaustion, duplicate answer ignore | `T-004` | Integration | **Not written** (Phase 3) | — | — |
+| BR-02 / US-02 / BOOM-03 | `+10` pts, one-time streak bonuses, `+30s` fuse, `now > deadline` rejection | `T-001` | Unit + Service | ✅ Pass (`17` total) | `2026-11-17` | `npm test` |
+| BR-01 / US-01 / BOOM-02 | Trim `2..20`, profanity, duplicate name, locked lobby rejection | `T-002` | Unit + Service | ✅ Pass | `2026-11-17` | `npm test` |
+| BR-03 / US-04 / BOOM-04 | One-play-only enforcement & reconnect state restoration | `T-003` | Service + UI | 🟡 Partial (API `ALREADY_PLAYED`/expiry pass; `/play` UI `⬜`) | `2026-11-17` | `npm test` |
+| BR-02 / US-03 / BOOM-03 | `correct_index` absent, no-repeat shuffle, pool exhaustion, duplicate answer ignore | `T-004` | Service | ✅ Pass | `2026-11-17` | `npm test` |
 | BR-04 / US-05 / BOOM-05 | Realtime `/scoreboard` tie-breaker ranking | `T-005` | E2E / Manual | **Not written** (Phase 4) | — | — |
 | BR-05 / US-06..07 / BOOM-06..07 | Admin `ADMIN_PASSCODE` guard, session start/end/reset, kick, question CRUD | `T-006` | Integration | **Not written** (Phase 3) | — | — |
 
@@ -67,5 +67,5 @@ Where UI exists, verify across mobile (`360px`) and projector (`1280px+`) viewpo
 
 ## Self-Check
 
-- [x] Traceability matrix honestly marks Phase 3–4 tests as `Not written`
+- [x] Traceability matrix honestly separates `BOOM-03` passing tests (`T-001`, `T-002`, `T-004`, partial `T-003`) from `BOOM-04`/`BOOM-05` `Not written` tests
 - [x] Project doc check command included in §1

@@ -249,8 +249,8 @@ Canonical stack & trade-offs live in [`sad.md`](sad.md) §2; resolved lockfile p
 | # | Decision area | Current posture | Why it must be resolved |
 |---:|---|---|---|
 | Q1 | Admin auth mechanism | `ADMIN_PASSCODE` signed `httpOnly` cookie proposed ([`ADR-0002`](adr/ADR-0002-admin-passcode-auth.md)) | Needed before implementing `/admin` routes |
-| Q2 | Streak bonus repeatability | One-time per milestone (`3`, `5`, `10`) per run proposed | Ensures consistent scoring implementation in Phase 3 |
-| Q3 | Profanity filter scope | Lightweight client/server normalized word list `TBD` | Prevents inappropriate names on projector `/scoreboard` |
+| Q2 | Streak bonus repeatability | Decided: one-time per milestone (`3`, `5`, `10`) per run (`src/lib/game-rules.ts`) | Resolved for Phase 3 TDD (`A-03`) |
+| Q3 | Profanity filter scope | Starter normalized blocklist implemented in `src/lib/validation.ts` | Expandable list in `validation.ts` |
 | Q4 | Deployment targets & Supabase project | Remote Supabase `zamxjnsxmtsreknsqrwj` provisioned, pushed & verified (`2026-11-17`); Vercel domain `TBD` | Vercel target needed before Phase 5 deploy |
 
 ### 14.1 Resolution tracker
@@ -258,6 +258,6 @@ Canonical stack & trade-offs live in [`sad.md`](sad.md) §2; resolved lockfile p
 | # | Status | ADR | Decided on |
 |---:|---|---|---|
 | Q1 | Proposed | [`ADR-0002`](adr/ADR-0002-admin-passcode-auth.md) | 2026-11-17 |
-| Q2 | Open | — | — |
-| Q3 | Open | — | — |
+| Q2 | Decided (one-time per milestone) | `A-03` | 2026-11-17 |
+| Q3 | Decided (starter list) | — | 2026-11-17 |
 | Q4 | Open | — | — |
