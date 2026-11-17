@@ -37,9 +37,10 @@
 | Field | Value |
 |---|---|
 | Priority | P1 |
-| Status | ⬜ To Do |
-| Authorization / Blockers | Tier 2 · Blocker: Supabase project credentials (`Q4`) for live apply (migration SQL can be authored offline) |
-| Impacted docs | `data-model.md`, `security.md`, `flow.md` |
+| Status | ✅ Done |
+| Authorization / Blockers | Tier 2 · Remote Supabase `zamxjnsxmtsreknsqrwj` linked & pushed |
+| Impacted docs | `data-model.md`, `security.md`, `flow.md`, `evidence.md`, `foundation.md` |
+| Completion evidence | Remote REST checks (`node --env-file=.env`, `2026-11-17`): `anon` read `sessions`/`players` `200` (`1`/`0` rows); `anon` read `questions`/`player_answers` & `anon` writes `401` (`42501`); `service_role` read `1` session & `60` questions (`42` `software`, `12` `general`, `6` `fun`); `lint`, `tsc`, `build`, `check-docs.mjs` exit `0` |
 | Traces | `BR-01`, `BR-05` · `US-01`, `US-07` |
 
 ### BOOM-03 — TDD Game Engine, Validation & Play APIs
@@ -83,3 +84,5 @@
 | Date | Change | Reason | Stories affected |
 |---|---|---|---|
 | 2026-11-17 | Initial sprint backlog created (`BOOM-01` done for Phase 1 scaffold) | Project bootstrap | All |
+| 2026-11-17 | `BOOM-02` migration (`20261117000001_init_schema.sql`), `seed.sql` (60 questions), & `supabase/config.toml` authored (`🟡`) | Phase 2 DB prep | `BOOM-02` |
+| 2026-11-17 | `BOOM-02` pushed to remote `zamxjnsxmtsreknsqrwj` and verified (`60` seeded questions, `anon` RLS/write denials `42501`) → `✅ Done` | Phase 2 verification | `BOOM-02` |

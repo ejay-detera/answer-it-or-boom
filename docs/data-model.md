@@ -4,13 +4,13 @@
 **Date:** 2026-11-17
 **Version:** 1.0
 **Owner:** Project Owner / Engineering
-**Status:** Active (Planned schema; migrations `⬜` not yet created)
+**Status:** Active (Schema migration & 60-question seed applied & verified on remote Supabase `zamxjnsxmtsreknsqrwj` `✅`)
 **Source of truth:** [`foundation.md`](foundation.md)
 **Related:** [SDD](sdd.md) · [Glossary](glossary.md) · [Security](security.md) · [API](api.md) · [Build](build.md) · [Grounding](grounding.md)
 
 ---
 
-> **As-built rule.** `supabase/migrations/` will be the schema authority once created in Phase 2. Right now **0 migrations exist** (`⬜`); tables below reflect the planned design from `S-01` §8.6.
+> **As-built rule.** [`supabase/migrations/20261117000001_init_schema.sql`](../supabase/migrations/20261117000001_init_schema.sql) and [`supabase/seed.sql`](../supabase/seed.sql) are applied and verified against remote `zamxjnsxmtsreknsqrwj` (`2026-11-17`).
 
 ---
 
@@ -36,7 +36,7 @@ erDiagram
   questions ||--o{ player_answers : "answered_in"
 ```
 
-## 3. Entity Catalog (⬜ Planned)
+## 3. Entity Catalog (✅ Applied to Remote `zamxjnsxmtsreknsqrwj`)
 
 ### `sessions`
 | Field | Type | Null | Default | Constraint | PII | Description |
@@ -126,7 +126,7 @@ State names match [`glossary.md`](glossary.md) §3:
 
 ## 8. Migrations and Backfills
 
-Location: `supabase/migrations/` (`⬜` to be created in Phase 2). Seed data: `supabase/seed.sql`. Never edit merged migrations.
+Location: `supabase/migrations/` (`20261117000001_init_schema.sql` applied & verified `✅` on `zamxjnsxmtsreknsqrwj`, `2026-11-17`). Seed data: `supabase/seed.sql` (1 `waiting` session + 60 easy questions: 42 `software`, 12 `general`, 6 `fun`). CLI config: `supabase/config.toml`. Never edit merged migrations.
 
 ## 9. Derived Data
 
@@ -140,6 +140,6 @@ None (`scoreboard` queries `players` directly with composite index).
 
 ## Self-Check
 
-- [x] Zero migrations exist yet; planned status (`⬜`) kept honest
-- [x] `correct_index` RLS denial and composite indexes explicitly specified
+- [x] Migration and seed files applied and verified against remote Supabase (`2026-11-17`)
+- [x] `correct_index` RLS denial and composite indexes verified (`401`/`42501` for `anon` on `questions`/`player_answers`)
 - [x] States match `glossary.md` §3

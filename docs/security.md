@@ -87,7 +87,7 @@ All optional modules inactive (`foundation.md` §0).
 | Review | Status | Env / Rev | Date | Reviewer | Notes |
 |---|---|---|---|---|---|
 | Dependency install audit | ✅ Clean (`0` vulns) | `local` | `2026-11-17` | `npm install` | Re-run when adding Supabase/Motion/Vitest |
-| Threat model & RLS review | ⬜ Outstanding | — | — | — | Required after Phase 2 migration |
+| Threat model & RLS review | 🟡 Partial (DB RLS verified; API pending) | `zamxjnsxmtsreknsqrwj` | `2026-11-17` | Engineering | `anon` denied (`401`/`42501`) on `questions`, `player_answers`, and writes; API strip test (`T-004`) pending Phase 3 |
 | Authorization & negative tests | ⬜ Outstanding | — | — | — | Required after Phase 3 TDD |
 
 ## 10. Open Security Decisions
