@@ -2,17 +2,27 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { BombMark, StatusBadge } from "@/components/status-badge";
+import {
+  BombSceneArt,
+  ComicCutoutFrame,
+  ComicLeftPanel,
+  ComicStageFrame,
+  ComicSticker,
+} from "@/components/comic-shell";
+import { StatusBadge } from "@/components/status-badge";
 import { useSessionRealtime } from "@/lib/use-session-realtime";
 import type { PlayerRow, SessionMeResponse } from "@/types/game";
 
 export function LobbyView() {
   const router = useRouter();
+  const prefersReducedMotion = useReducedMotion();
   const [me, setMe] = useState<PlayerRow | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [serverOffsetMs, setServerOffsetMs] = useState(0);
   const [authLoaded, setAuthLoaded] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const [countdownDisplay, setCountdownDisplay] = useState<number | null>(null);
 
   useEffect(() => {
@@ -110,104 +120,165 @@ export function LobbyView() {
     return () => window.clearInterval(intervalId);
   }, [session, serverOffsetMs, router]);
 
+  async function handleLeaveLobby() {
+    if (leaving) return;
+    setLeaving(true);
+    try {
+      const res = await fetch("/api/session/me", { method: "DELETE" });
+      if (res.ok) {
+        router.replace("/");
+        router.refresh();
+      }
+    } finally {
+      setLeaving(false);
+    }
+  }
+
   if (!authLoaded || (loading && players.length === 0)) {
     return (
-      <main className="flex-1 flex items-center justify-center px-4 py-10">
-        <section className="w-full max-w-lg rounded-3xl bg-surface border border-border-ash p-6 sm:p-8 text-center">
+      <ComicStageFrame bannerTitle="Waiting Lobby" maxWidthClass="max-w-4xl">
+        <div className="rounded-2xl bg-bg-primary border border-border-ash p-8 text-center">
           <p className="text-base text-text-muted">Connecting to waiting lobby...</p>
-        </section>
-      </main>
+        </div>
+      </ComicStageFrame>
     );
   }
 
-  return (
-    <main className="flex-1 flex items-center justify-center px-4 py-10">
-      <section className="w-full max-w-lg rounded-3xl bg-surface border border-border-ash p-6 sm:p-8 space-y-6">
-        <header className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <BombMark size={44} />
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
-                Waiting Lobby
-              </h1>
-              <p className="text-sm text-text-muted mt-0.5">
-                {me ? `Joined as ${me.name}` : "Preparing cohort"}
-              </p>
-            </div>
-          </div>
-          {session ? <StatusBadge status={session.status} /> : null}
-        </header>
+  const isCountdown =
+    session?.status === "countdown" &&
+    Boolean(session.started_at) &&
+    countdownDisplay !== null;
 
-        {session?.status === "countdown" && session.started_at && countdownDisplay !== null ? (
-          <div
-            role="status"
-            aria-live="assertive"
-            className="rounded-2xl bg-surface-elevated border border-border-ash p-6 text-center space-y-2"
-          >
-            <p className="text-sm font-semibold text-accent-yellow">
-              Get ready — bomb fuse arms in
-            </p>
-            <p className="font-display font-bold tabular-nums text-6xl text-accent-orange">
-              {countdownDisplay > 0 ? countdownDisplay : "GO!"}
-            </p>
-          </div>
-        ) : (
-          <div className="rounded-2xl bg-surface-elevated border border-border-ash p-4 text-sm text-text-muted">
+  return (
+    <ComicStageFrame
+      bannerTitle="Waiting Lobby"
+      bannerTone="default"
+      rightSlot={
+        <>
+          {session ? <StatusBadge status={session.status} /> : null}
+          {me ? (
+            <ComicSticker tone="orange" tilt="right">
+              {me.name}
+            </ComicSticker>
+          ) : null}
+        </>
+      }
+    >
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+        <ComicLeftPanel className="md:col-span-5">
+          {isCountdown && countdownDisplay !== null ? (
+            <ComicCutoutFrame innerClassName="p-6 text-center space-y-2">
+              <p className="text-sm font-semibold text-accent-yellow">
+                Get ready — bomb fuse arms in
+              </p>
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={countdownDisplay}
+                  role="status"
+                  aria-live="assertive"
+                  initial={
+                    prefersReducedMotion
+                      ? false
+                      : { scale: 1.32, rotate: -3 }
+                  }
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{
+                    duration: prefersReducedMotion ? 0.01 : 0.18,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  className="font-display font-bold tabular-nums text-6xl sm:text-7xl text-accent-orange"
+                >
+                  {countdownDisplay > 0 ? countdownDisplay : "GO!"}
+                </motion.p>
+              </AnimatePresence>
+            </ComicCutoutFrame>
+          ) : (
+            <ComicCutoutFrame>
+              <BombSceneArt variant="lobby" />
+            </ComicCutoutFrame>
+          )}
+
+          <div className="rounded-2xl bg-surface border border-border-ash p-4 text-sm text-text-primary leading-relaxed">
             {session?.lobby_locked
               ? "Lobby is locked. Everyone starts the exact moment the facilitator clicks Start."
               : "Stay on this screen. Everyone launches together when the facilitator starts the clock."}
           </div>
-        )}
 
-        {error ? (
-          <p role="alert" className="text-sm font-semibold text-danger-red">
-            {error}
-          </p>
-        ) : null}
+          {session?.status === "waiting" ? (
+            <button
+              type="button"
+              disabled={leaving}
+              onClick={() => void handleLeaveLobby()}
+              className="min-h-12 w-full rounded-2xl bg-surface-elevated border border-border-ash px-4 text-sm font-bold text-text-primary hover:border-danger-red hover:text-danger-red disabled:opacity-60 cursor-pointer"
+            >
+              {leaving ? "Leaving lobby..." : "Leave Lobby"}
+            </button>
+          ) : null}
 
-        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm pt-1 border-t border-border-ash">
+            <Link
+              href="/scoreboard"
+              className="min-h-12 inline-flex items-center text-info-blue font-bold hover:underline"
+            >
+              View Scoreboard
+            </Link>
+            <Link
+              href="/admin"
+              className="min-h-12 inline-flex items-center text-text-muted font-bold hover:text-text-primary"
+            >
+              Facilitator Login
+            </Link>
+          </div>
+        </ComicLeftPanel>
+
+        <div className="md:col-span-7 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-text-primary">Cadets in Lobby</h2>
-            <span className="font-display font-bold tabular-nums text-base text-accent-yellow">
-              {players.length}
-            </span>
+            <h2 className="text-xl font-bold text-text-primary">Cadets in Lobby</h2>
+            <ComicSticker tone="yellow" tilt="right">
+              {players.length} READY
+            </ComicSticker>
           </div>
 
+          {error ? (
+            <p role="alert" className="text-sm font-semibold text-danger-red">
+              {error}
+            </p>
+          ) : null}
+
           {players.length === 0 ? (
-            <p className="text-sm text-text-muted">Waiting for cadets to join...</p>
+            <div className="rounded-2xl bg-bg-primary border border-border-ash p-6 text-center">
+              <p className="text-sm text-text-muted">Waiting for cadets to join...</p>
+            </div>
           ) : (
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {players.map((player) => {
                 const isMe = me?.id === player.id;
                 return (
-                  <li
+                  <motion.li
                     key={player.id}
-                    className={`min-h-12 rounded-2xl px-4 py-2.5 flex items-center justify-between border ${
+                    layout={!prefersReducedMotion ? "position" : false}
+                    initial={prefersReducedMotion ? false : { scale: 0.96, y: 6 }}
+                    animate={{ scale: 1, y: 0 }}
+                    transition={{ duration: prefersReducedMotion ? 0.01 : 0.18 }}
+                    className={`min-h-12 rounded-2xl px-4 py-2.5 flex items-center justify-between border-2 ${
                       isMe
                         ? "bg-surface-elevated border-accent-orange text-text-primary"
                         : "bg-bg-primary border-border-ash text-text-primary"
                     }`}
                   >
-                    <span className="font-semibold truncate">{player.name}</span>
+                    <span className="font-bold truncate">{player.name}</span>
                     {isMe ? (
-                      <span className="text-xs font-bold text-accent-orange shrink-0 ml-2">
+                      <span className="text-xs font-display font-bold text-accent-orange shrink-0 ml-2 uppercase">
                         You
                       </span>
                     ) : null}
-                  </li>
+                  </motion.li>
                 );
               })}
             </ul>
           )}
         </div>
-
-        <footer className="pt-4 border-t border-border-ash flex items-center justify-between text-sm">
-          <Link href="/scoreboard" className="text-info-blue font-semibold hover:underline">
-            View Scoreboard
-          </Link>
-          <span className="text-text-muted">Synced via Realtime</span>
-        </footer>
-      </section>
-    </main>
+      </div>
+    </ComicStageFrame>
   );
 }

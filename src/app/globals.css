@@ -31,10 +31,17 @@
 }
 
 @layer base {
+  html {
+    color-scheme: dark;
+    scrollbar-color: var(--color-border-ash) var(--color-bg-primary);
+    scrollbar-width: thin;
+  }
+
   body {
     background-color: var(--color-bg-primary);
     color: var(--color-text-primary);
     font-family: var(--font-sans);
+    caret-color: var(--color-accent-orange);
   }
 
   h1,
@@ -44,14 +51,112 @@
     text-wrap: balance;
   }
 
+  a {
+    text-underline-offset: 4px;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-accent-yellow);
     outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-accent-orange);
+    color: var(--color-bg-primary);
   }
 }
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* Comic stage elevation & motion */
+.comic-panel-shadow {
+  box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.72);
+}
+
+.comic-ribbon-shadow {
+  box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.65);
+}
+
+@keyframes comic-star-sway {
+  0%,
+  100% {
+    transform: rotate(-2.5deg);
+  }
+  50% {
+    transform: rotate(2.5deg);
+  }
+}
+
+@keyframes comic-bomb-breathe {
+  0%,
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.015);
+  }
+}
+
+@keyframes comic-spark-flicker {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.16) rotate(12deg);
+    opacity: 0.85;
+  }
+}
+
+@keyframes comic-bomb-tremble {
+  0%,
+  100% {
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+  25% {
+    transform: translate(-1.5px, 1px) rotate(-1deg);
+  }
+  50% {
+    transform: translate(1.5px, -1px) rotate(1deg);
+  }
+  75% {
+    transform: translate(-1px, -1px) rotate(-0.5deg);
+  }
+}
+
+.animate-star-sway {
+  transform-origin: top center;
+  animation: comic-star-sway 4.2s ease-in-out infinite;
+}
+
+.animate-bomb-breathe {
+  animation: comic-bomb-breathe 3s ease-in-out infinite;
+}
+
+.animate-spark-flicker {
+  transform-origin: center;
+  animation: comic-spark-flicker 0.9s ease-in-out infinite;
+}
+
+/* BombTimer urgency-reactive hooks (driven via data-urgency without React re-renders) */
+[data-urgency="warn"] .bomb-urgency-body {
+  animation: comic-bomb-breathe 1.2s ease-in-out infinite;
+}
+
+[data-urgency="critical"] .bomb-urgency-body {
+  animation: comic-bomb-tremble 0.22s linear infinite;
+}
+
+[data-urgency="warn"] .bomb-urgency-spark,
+[data-urgency="critical"] .bomb-urgency-spark {
+  filter: drop-shadow(0 0 8px rgba(255, 201, 51, 0.7));
+}
+
+[data-urgency="critical"] .bomb-urgency-spark {
+  filter: drop-shadow(0 0 12px rgba(255, 59, 78, 0.9));
 }
 
 @media (prefers-reduced-motion: reduce) {

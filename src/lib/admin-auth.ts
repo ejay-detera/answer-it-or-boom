@@ -1,5 +1,6 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 
 export const ADMIN_COOKIE_NAME = "boom_admin_token";
 const ADMIN_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
@@ -42,21 +43,23 @@ export function createAdminSessionToken(
 /** Verifies signature and expiry of an admin session token. */
 export function verifyAdminSessionToken(
   token: string | undefined,
-  nowMs: number = Date.now(),
-  secret: string = getAdminSecret()
+  nowMs?: number,
+  secret?: string
 ): boolean {
   if (!token) return false;
   const dotIdx = token.indexOf(".");
   if (dotIdx <= 0) return false;
 
+  const resolvedNow = nowMs ?? Date.now();
+  const resolvedSecret = secret ?? getAdminSecret();
   const expiresAtStr = token.slice(0, dotIdx);
   const providedSig = token.slice(dotIdx + 1);
   const expiresAt = Number(expiresAtStr);
-  if (!Number.isFinite(expiresAt) || nowMs > expiresAt) {
+  if (!Number.isFinite(expiresAt) || resolvedNow > expiresAt) {
     return false;
   }
 
-  const expectedSig = createHmac("sha256", secret)
+  const expectedSig = createHmac("sha256", resolvedSecret)
     .update(expiresAtStr)
     .digest("base64url");
 
@@ -71,6 +74,7 @@ export function verifyAdminSessionToken(
 
 /** Reads and validates the `boom_admin_token` cookie on the Next.js server. */
 export async function isAdminAuthenticated(): Promise<boolean> {
+  await connection();
   const cookieStore = await cookies();
   const token = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
   return verifyAdminSessionToken(token);

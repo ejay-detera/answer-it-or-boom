@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { BombSceneArt, ComicCutoutFrame } from "@/components/comic-shell";
 import { GAME_CONFIG } from "@/config/game-config";
 
 function formatClock(remainingMs: number): string {
@@ -22,6 +23,7 @@ export function BombTimer({
   serverOffsetMs,
   onExpire,
 }: BombTimerProps) {
+  const stageRef = useRef<HTMLDivElement>(null);
   const clockRef = useRef<HTMLSpanElement>(null);
   const fuseBarRef = useRef<HTMLDivElement>(null);
   const expiredRef = useRef(false);
@@ -41,6 +43,16 @@ export function BombTimer({
       const serverNowMs = Date.now() + serverOffsetMs;
       const remainingMs = Math.max(0, deadlineMs - serverNowMs);
       const remainingSeconds = Math.ceil(remainingMs / 1000);
+      const urgency =
+        remainingSeconds <= 10
+          ? "critical"
+          : remainingSeconds <= 30
+            ? "warn"
+            : "normal";
+
+      if (stageRef.current && stageRef.current.dataset.urgency !== urgency) {
+        stageRef.current.dataset.urgency = urgency;
+      }
 
       if (clockRef.current) {
         clockRef.current.textContent = formatClock(remainingMs);
@@ -91,23 +103,31 @@ export function BombTimer({
   }, [deadlineIso, serverOffsetMs]);
 
   return (
-    <div className="space-y-3" aria-label="Bomb countdown timer">
-      <div className="flex items-baseline justify-between gap-4">
-        <span className="text-sm font-semibold text-text-muted">Fuse remaining</span>
-        <span
-          ref={clockRef}
-          className="font-display font-bold tabular-nums text-5xl sm:text-6xl leading-none tracking-tight text-text-primary"
-        >
-          2:00
-        </span>
-      </div>
-      <div className="h-3 w-full rounded-2xl bg-surface-elevated overflow-hidden border border-border-ash">
-        <div
-          ref={fuseBarRef}
-          className="h-full bg-accent-orange transition-colors duration-200"
-          style={{ width: "100%" }}
-        />
-      </div>
+    <div
+      ref={stageRef}
+      data-urgency="normal"
+      className="space-y-3"
+      aria-label="Bomb countdown timer"
+    >
+      <ComicCutoutFrame innerClassName="p-3 sm:p-4 space-y-3">
+        <BombSceneArt variant="play" />
+        <div className="flex items-baseline justify-between gap-4 px-1">
+          <span className="text-sm font-semibold text-text-muted">Fuse remaining</span>
+          <span
+            ref={clockRef}
+            className="font-display font-bold tabular-nums text-5xl sm:text-6xl leading-none tracking-tight text-text-primary"
+          >
+            2:00
+          </span>
+        </div>
+        <div className="h-3.5 w-full rounded-xl bg-surface-elevated overflow-hidden border border-border-ash">
+          <div
+            ref={fuseBarRef}
+            className="h-full bg-accent-orange transition-colors duration-200"
+            style={{ width: "100%" }}
+          />
+        </div>
+      </ComicCutoutFrame>
     </div>
   );
 }

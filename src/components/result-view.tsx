@@ -4,40 +4,19 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import {
+  BombSceneArt,
+  ComicCutoutFrame,
+  ComicLeftPanel,
+  ComicStageFrame,
+  ComicSticker,
+} from "@/components/comic-shell";
 import { SoundToggle } from "@/components/sound-toggle";
 import { StatusBadge } from "@/components/status-badge";
 import { rankPlayers } from "@/lib/game-rules";
 import { playSoundEffect } from "@/lib/sound-effects";
 import { useSessionRealtime } from "@/lib/use-session-realtime";
 import type { PlayerRow, SessionMeResponse } from "@/types/game";
-
-function ResultIllustration({ completed }: { completed: boolean }) {
-  if (completed) {
-    return (
-      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-        <circle cx="32" cy="32" r="24" fill="#2A2F40" stroke="#2EE59D" strokeWidth="3" />
-        <path
-          d="M21 33L29 41L44 24"
-          stroke="#2EE59D"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-  return (
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-      <path
-        d="M32 6L37.5 19.5L51.5 14L44 27L58 34L43.5 39L48 53L35 45L26 57L25 42L10 43L19 31L8 21L23 21L21 7L32 16V6Z"
-        fill="#2A2F40"
-        stroke="#FF3B4E"
-        strokeWidth="3"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 export function ResultView() {
   const router = useRouter();
@@ -105,19 +84,18 @@ export function ResultView() {
 
   if (!loaded) {
     return (
-      <main className="flex-1 flex items-center justify-center px-4 py-10">
-        <section className="w-full max-w-lg rounded-3xl bg-surface border border-border-ash p-6 sm:p-8 text-center">
+      <ComicStageFrame bannerTitle="Run Summary">
+        <div className="rounded-2xl bg-bg-primary border border-border-ash p-8 text-center">
           <p className="text-base text-text-muted">Loading your run summary...</p>
-        </section>
-      </main>
+        </div>
+      </ComicStageFrame>
     );
   }
 
   if (!livePlayer) {
     return (
-      <main className="flex-1 flex items-center justify-center px-4 py-10">
-        <section className="w-full max-w-lg rounded-3xl bg-surface border border-border-ash p-6 sm:p-8 text-center space-y-5">
-          <h1 className="text-3xl font-bold text-text-primary">No active run</h1>
+      <ComicStageFrame bannerTitle="No Active Run">
+        <div className="rounded-2xl bg-bg-primary border border-border-ash p-6 sm:p-8 text-center space-y-5">
           <p className="text-base text-text-muted">
             No completed run was found, or the facilitator reset the session for a new round.
           </p>
@@ -135,79 +113,124 @@ export function ResultView() {
               View Scoreboard
             </Link>
           </div>
-        </section>
-      </main>
+        </div>
+      </ComicStageFrame>
     );
   }
 
   const completed = livePlayer.status === "completed";
 
+  const statCards = [
+    {
+      label: "Final Score",
+      value: String(livePlayer.score),
+      tone: "text-accent-orange",
+    },
+    {
+      label: "Current Rank",
+      value: rankInfo ? `#${rankInfo.rank} / ${rankInfo.total}` : "—",
+      tone: "text-info-blue",
+    },
+    {
+      label: "Correct / Wrong",
+      value: `${livePlayer.correct_count} / ${livePlayer.wrong_count}`,
+      tone: "text-text-primary",
+      split: {
+        correct: livePlayer.correct_count,
+        wrong: livePlayer.wrong_count,
+      },
+    },
+    {
+      label: "Best Streak",
+      value: String(livePlayer.best_streak),
+      tone: "text-accent-yellow",
+    },
+  ];
+
   return (
-    <main className="flex-1 flex items-center justify-center px-4 py-10">
-      <section className="w-full max-w-lg rounded-3xl bg-surface border border-border-ash p-6 sm:p-8 space-y-6">
-        <div className="flex items-center justify-between gap-3">
+    <ComicStageFrame
+      bannerTitle={completed ? "You Beat the Bomb!" : "BOOM!"}
+      bannerTone={completed ? "green" : "red"}
+      rightSlot={
+        <>
           <StatusBadge status={livePlayer.status} />
           <SoundToggle />
-        </div>
+        </>
+      }
+    >
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+        <ComicLeftPanel className="md:col-span-5">
+          <ComicCutoutFrame>
+            <motion.div
+              initial={prefersReducedMotion ? false : { scale: 0.72 }}
+              animate={{ scale: 1 }}
+              transition={{
+                duration: prefersReducedMotion ? 0.01 : 0.28,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+            >
+              <BombSceneArt variant={completed ? "victory" : "boom"} />
+            </motion.div>
+          </ComicCutoutFrame>
 
-        <div className="flex flex-col items-center text-center space-y-3">
-          <motion.div
-            initial={prefersReducedMotion ? false : { scale: 0.78, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: prefersReducedMotion ? 0.01 : 0.28, ease: "easeOut" }}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <ComicSticker tone={completed ? "green" : "red"} tilt="left">
+              {completed ? "BOMB DEFUSED" : "FUSE EXPIRED"}
+            </ComicSticker>
+            <ComicSticker tone="yellow" tilt="right">
+              {livePlayer.name}
+            </ComicSticker>
+          </div>
+
+          <div className="rounded-2xl bg-surface border border-border-ash p-4">
+            <p className="text-sm sm:text-base text-text-primary leading-relaxed">
+              {completed
+                ? `Incredible run, ${livePlayer.name} — you answered every active question.`
+                : `Time ran out for ${livePlayer.name}. One try per session!`}
+            </p>
+          </div>
+        </ComicLeftPanel>
+
+        <div className="md:col-span-7 space-y-5">
+          <div className="grid grid-cols-2 gap-3">
+            {statCards.map((card, idx) => (
+              <motion.div
+                key={card.label}
+                initial={prefersReducedMotion ? false : { y: 8 }}
+                animate={{ y: 0 }}
+                transition={{
+                  duration: prefersReducedMotion ? 0.01 : 0.2,
+                  delay: prefersReducedMotion ? 0 : idx * 0.04,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+                className="rounded-2xl bg-bg-primary border-2 border-border-ash p-4"
+              >
+                <p className="text-xs font-semibold text-text-muted">{card.label}</p>
+                {card.split ? (
+                  <p className="font-display font-bold tabular-nums text-2xl sm:text-3xl text-text-primary mt-1">
+                    <span className="text-success-green">{card.split.correct}</span>
+                    {" / "}
+                    <span className="text-danger-red">{card.split.wrong}</span>
+                  </p>
+                ) : (
+                  <p
+                    className={`font-display font-bold tabular-nums text-2xl sm:text-3xl mt-1 ${card.tone}`}
+                  >
+                    {card.value}
+                  </p>
+                )}
+              </motion.div>
+            ))}
+          </div>
+
+          <Link
+            href="/scoreboard"
+            className="min-h-12 w-full rounded-2xl bg-accent-orange text-bg-primary font-display font-bold text-lg px-6 flex items-center justify-center transition-transform active:scale-[0.99] hover:brightness-105"
           >
-            <ResultIllustration completed={completed} />
-          </motion.div>
-          <h1
-            className={`text-4xl sm:text-5xl font-bold ${
-              completed ? "text-success-green" : "text-danger-red"
-            }`}
-          >
-            {completed ? "You beat the bomb!" : "BOOM!"}
-          </h1>
-          <p className="text-base text-text-muted">
-            {completed
-              ? `Incredible run, ${livePlayer.name} — you answered every active question.`
-              : `Time ran out for ${livePlayer.name}. One try per session!`}
-          </p>
+            Watch Live Scoreboard
+          </Link>
         </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-surface-elevated border border-border-ash p-4">
-            <p className="text-xs font-semibold text-text-muted">Final Score</p>
-            <p className="font-display font-bold tabular-nums text-3xl text-accent-orange mt-1">
-              {livePlayer.score}
-            </p>
-          </div>
-          <div className="rounded-2xl bg-surface-elevated border border-border-ash p-4">
-            <p className="text-xs font-semibold text-text-muted">Current Rank</p>
-            <p className="font-display font-bold tabular-nums text-3xl text-info-blue mt-1">
-              {rankInfo ? `#${rankInfo.rank} / ${rankInfo.total}` : "—"}
-            </p>
-          </div>
-          <div className="rounded-2xl bg-surface-elevated border border-border-ash p-4">
-            <p className="text-xs font-semibold text-text-muted">Correct / Wrong</p>
-            <p className="font-display font-bold tabular-nums text-2xl text-text-primary mt-1">
-              <span className="text-success-green">{livePlayer.correct_count}</span>
-              {" / "}
-              <span className="text-danger-red">{livePlayer.wrong_count}</span>
-            </p>
-          </div>
-          <div className="rounded-2xl bg-surface-elevated border border-border-ash p-4">
-            <p className="text-xs font-semibold text-text-muted">Best Streak</p>
-            <p className="font-display font-bold tabular-nums text-2xl text-accent-yellow mt-1">
-              {livePlayer.best_streak}
-            </p>
-          </div>
-        </div>
-
-        <Link
-          href="/scoreboard"
-          className="min-h-12 w-full rounded-2xl bg-accent-orange text-bg-primary font-display font-bold text-lg px-6 flex items-center justify-center hover:brightness-105"
-        >
-          Watch Live Scoreboard
-        </Link>
-      </section>
-    </main>
+      </div>
+    </ComicStageFrame>
   );
 }

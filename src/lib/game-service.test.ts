@@ -3,6 +3,7 @@ import {
   getCurrentPlayerState,
   getNextQuestion,
   joinSession,
+  leaveWaitingLobby,
   submitAnswer,
   type GameRepository,
 } from "@/lib/game-service";
@@ -98,6 +99,14 @@ function makeInMemoryRepo(seed?: {
       if (idx === -1) throw new Error("Player not found");
       players[idx] = { ...players[idx], ...patch };
       return players[idx];
+    },
+    async deleteWaitingPlayer(playerId) {
+      const idx = players.findIndex(
+        (p) => p.id === playerId && p.status === "waiting"
+      );
+      if (idx === -1) return false;
+      players.splice(idx, 1);
+      return true;
     },
   };
 }
@@ -481,5 +490,51 @@ describe("getCurrentPlayerState & countdown transition (T-003)", () => {
       new Date("2026-11-17T12:02:01.000Z")
     );
     expect(afterDeadline.ok && afterDeadline.data.player?.status).toBe("exploded");
+  });
+
+  it("allows a waiting cadet to leave the lobby and blocks leaving once playing", async () => {
+    const repo = makeInMemoryRepo({
+      session: waitingSession,
+      players: [
+        {
+          id: "p-wait",
+          session_id: waitingSession.id,
+          name: "trial",
+          score: 0,
+          correct_count: 0,
+          wrong_count: 0,
+          streak: 0,
+          best_streak: 0,
+          deadline: null,
+          status: "waiting",
+          finished_at: null,
+          joined_at: "2026-11-17T11:58:00.000Z",
+        },
+        {
+          id: "p-play",
+          session_id: waitingSession.id,
+          name: "active",
+          score: 10,
+          correct_count: 1,
+          wrong_count: 0,
+          streak: 1,
+          best_streak: 1,
+          deadline: "2026-11-17T12:02:30.000Z",
+          status: "playing",
+          finished_at: null,
+          joined_at: "2026-11-17T11:58:00.000Z",
+        },
+      ],
+    });
+
+    const leftRes = await leaveWaitingLobby(repo, "p-wait");
+    expect(leftRes.ok && leftRes.data.left).toBe(true);
+    expect(repo.players.some((p) => p.id === "p-wait")).toBe(false);
+
+    const blockedRes = await leaveWaitingLobby(repo, "p-play");
+    expect(blockedRes.ok).toBe(false);
+    if (!blockedRes.ok) {
+      expect(blockedRes.error.code).toBe("ALREADY_PLAYED");
+    }
   });
 });

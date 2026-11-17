@@ -83,6 +83,7 @@ Dark Cartoon Bomb mode (`#14161F`) is the sole supported appearance (`✅` confi
 ## 4. Components
 
 - **Structure (`AGENTS.md` §4):** Route shells in `src/app/**/page.tsx`; reusable UI in `src/components/`.
+- **Comic Stage Shell (`src/components/comic-shell.tsx`):** All 8 application routes share `<ComicStageFrame>` (angled top-left sticker banner `<h1>`, swaying vector-star dark-carnival backdrop, bottom-right brand stamp), `<ComicCutoutFrame>` high-contrast paper-cutout stage panels, `<ComicSticker>` angled metric/rule tags, and `<BombSceneArt>` geometric vector scenes.
 - **Buttons:** Primary `#FF7A1A` fill with `#14161F` text (7.4:1 contrast); Destructive `#FF3B4E` fill with `#14161F` text; minimum tap height `48px` (`min-h-12`).
 - **Inputs:** Validation message below field (`aria-describedby`); never color-only errors.
 - **Status representation:** Pair label + authored SVG icon/shape (`Waiting`, `Playing`, `BOOM!`, `Beat the bomb!`).
@@ -100,8 +101,10 @@ Dark Cartoon Bomb mode (`#14161F`) is the sole supported appearance (`✅` confi
 
 ## 6. Motion & Feedback
 
-`Framer Motion` (`14.14.0` ✅) + CSS transitions:
-- Bomb fuse shrinks proportionally to remaining time; `+30s` floating indicator on correct answer; subtle shake on wrong answer; BOOM/victory reveal on `/result`.
+`Framer Motion` (`14.14.0` ✅) + CSS `@keyframes` (`src/app/globals.css`):
+- **Stage & sticker motion:** Angled ribbon banners and cutout cards settle cleanly on mount (`240ms`, `cubic-bezier(0.16, 1, 0.3, 1)`) from an already-visible state; ambient background stars sway and the bomb mascot breathes with flickering spark on GPU transforms.
+- **Bomb urgency & countdown:** Synchronized `3-2-1-GO!` numeral stamps on `/lobby`; 60fps ref-driven fuse bar and `data-urgency` (`normal` / `warn` / `critical`) bomb tremble/spark glow on `/play` without React re-renders.
+- **Feedback & live lists:** `+30s` pop / wrong-answer horizontal recoil shake on `/play`; starburst `BOOM!` and victory defuse reveals with staggered stat cards on `/result`; `layout="position"` rank/roster transitions on `/lobby`, `/scoreboard`, and `/admin/dashboard`.
 - `prefers-reduced-motion` rule active in `src/app/globals.css` and `useReducedMotion()` (`✅`).
 
 ---
