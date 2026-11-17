@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { SoundToggle } from "@/components/sound-toggle";
 import { StatusBadge } from "@/components/status-badge";
 import { rankPlayers } from "@/lib/game-rules";
+import { playSoundEffect } from "@/lib/sound-effects";
 import { useSessionRealtime } from "@/lib/use-session-realtime";
 import type { PlayerRow, SessionMeResponse } from "@/types/game";
 
@@ -38,6 +41,8 @@ function ResultIllustration({ completed }: { completed: boolean }) {
 
 export function ResultView() {
   const router = useRouter();
+  const prefersReducedMotion = useReducedMotion();
+  const soundPlayedRef = useRef(false);
   const [me, setMe] = useState<PlayerRow | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -92,6 +97,12 @@ export function ResultView() {
     return { rank: idx + 1, total: ranked.length };
   }, [livePlayer, players, session]);
 
+  useEffect(() => {
+    if (!loaded || !livePlayer || soundPlayedRef.current) return;
+    soundPlayedRef.current = true;
+    playSoundEffect(livePlayer.status === "completed" ? "victory" : "boom");
+  }, [loaded, livePlayer]);
+
   if (!loaded) {
     return (
       <main className="flex-1 flex items-center justify-center px-4 py-10">
@@ -134,9 +145,19 @@ export function ResultView() {
   return (
     <main className="flex-1 flex items-center justify-center px-4 py-10">
       <section className="w-full max-w-lg rounded-3xl bg-surface border border-border-ash p-6 sm:p-8 space-y-6">
-        <div className="flex flex-col items-center text-center space-y-3">
-          <ResultIllustration completed={completed} />
+        <div className="flex items-center justify-between gap-3">
           <StatusBadge status={livePlayer.status} />
+          <SoundToggle />
+        </div>
+
+        <div className="flex flex-col items-center text-center space-y-3">
+          <motion.div
+            initial={prefersReducedMotion ? false : { scale: 0.78, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: prefersReducedMotion ? 0.01 : 0.28, ease: "easeOut" }}
+          >
+            <ResultIllustration completed={completed} />
+          </motion.div>
           <h1
             className={`text-4xl sm:text-5xl font-bold ${
               completed ? "text-success-green" : "text-danger-red"

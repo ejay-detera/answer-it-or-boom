@@ -48,7 +48,7 @@ Architecture & surfaces: **Next.js (App Router, TypeScript)** client & Server Ac
 | System context | Internal onboarding tool: software developer cadet orientation | `S-01` |
 | Primary actors / operators | **Player (Cadet)** and **Admin (Facilitator)** | `S-01` |
 | Explicit non-goals | No player accounts/passwords, multi-room codes, PvP chat, typed answers, AI questions, replays, native mobile app, or offline play | `S-01` ([`prd.md`](prd.md) §6) |
-| Implementation status | Phase 1–4 + `BOOM-05` (`/`, `/lobby`, `/play`, `/result`, `/scoreboard`, `/admin/**`) built & E2E-verified (`2026-11-17`); `BOOM-06` polish & Vercel deploy `⬜` | [`flow.md`](flow.md) |
+| Implementation status | All MVP features + `BOOM-06` sound/motion polish & local QA built & verified (`2026-11-17`); Vercel deploy left to user (`⬜`) | [`flow.md`](flow.md) |
 
 ### Architecture summary in one paragraph
 

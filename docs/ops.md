@@ -10,7 +10,7 @@
 
 ---
 
-> **Reality rule.** Local Phase 1 development scaffold only. Hosted Supabase and Vercel deployments do not exist yet (`⬜`).
+> **Reality rule.** Local app + remote Supabase (`zamxjnsxmtsreknsqrwj`) verified (`2026-11-17`). Hosted Vercel deployment does not exist yet (`⬜` — user deploying).
 
 ---
 
@@ -52,9 +52,9 @@ Server secrets (`SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_PASSCODE`) live in local `.e
 
 | Capability | Status | Evidence |
 |---|:---:|---|
-| Supabase schema, RLS, and `60+` question seed applied | ⬜ | — |
-| Full gameplay & admin flows verified (`test-plan.md`) | ⬜ | — |
-| Practice dry-run with sample cohort completed (`S-01` §11) | ⬜ | — |
+| Supabase schema, RLS, and `60+` question seed applied | ✅ | `zamxjnsxmtsreknsqrwj` pushed & REST-verified (`60` questions, `2026-11-17`) |
+| Full gameplay & admin flows verified (`test-plan.md`) | ✅ | `26/26` Vitest + Playwright E2E (`BOOM-04`, `BOOM-05`, `BOOM-06`, `2026-11-17`) |
+| Practice dry-run with sample cohort completed (`S-01` §11) | ⬜ | Pending Vercel deploy by Project Owner |
 
 ---
 
