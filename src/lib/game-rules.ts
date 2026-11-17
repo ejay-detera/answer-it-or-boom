@@ -70,12 +70,14 @@ export function evaluateAnswer(
 function getSurvivalMs(
   player: PlayerRow,
   sessionStartedAtIso: string | null,
-  nowMs: number
+  fallbackNowMs?: number
 ): number {
   const startMs = sessionStartedAtIso
     ? Date.parse(sessionStartedAtIso)
     : Date.parse(player.joined_at);
-  const endMs = player.finished_at ? Date.parse(player.finished_at) : nowMs;
+  const endMs = player.finished_at
+    ? Date.parse(player.finished_at)
+    : (fallbackNowMs ?? Date.parse(player.deadline ?? player.joined_at));
   return Math.max(0, endMs - startMs);
 }
 
@@ -83,17 +85,17 @@ function getSurvivalMs(
 export function rankPlayers(
   players: readonly PlayerRow[],
   sessionStartedAtIso: string | null,
-  now: Date = new Date()
+  now?: Date
 ): PlayerRow[] {
-  const nowMs = now.getTime();
+  const fallbackNowMs = now?.getTime();
   return [...players].sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     if (b.correct_count !== a.correct_count) {
       return b.correct_count - a.correct_count;
     }
     const survivalDiff =
-      getSurvivalMs(b, sessionStartedAtIso, nowMs) -
-      getSurvivalMs(a, sessionStartedAtIso, nowMs);
+      getSurvivalMs(b, sessionStartedAtIso, fallbackNowMs) -
+      getSurvivalMs(a, sessionStartedAtIso, fallbackNowMs);
     if (survivalDiff !== 0) return survivalDiff;
     const joinedDiff = Date.parse(a.joined_at) - Date.parse(b.joined_at);
     return joinedDiff !== 0 ? joinedDiff : a.id.localeCompare(b.id);

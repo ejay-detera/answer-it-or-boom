@@ -109,8 +109,8 @@ Dark Cartoon Bomb mode (`#14161F`) is the sole supported appearance (`✅` confi
 ## 7. Accessibility & Rendered Review
 
 Target: **[WCAG 2.2](https://www.w3.org/TR/2024/REC-WCAG22-20241212/) Level AA** + `>= 48px` mobile tap targets (`S-01` §9.4).
-**Verified:** `prefers-reduced-motion`, focus ring (`:focus-visible` Spark Yellow), zero monospace fonts (`layout.tsx`, `globals.css`).
-**Not yet verified:** Live browser WCAG AA contrast audit (`C-01`), keyboard/screen-reader pass on `/play` & `/admin`, mobile (`360px`) & projector (`1280px+`) rendered review (`test-plan.md` §6).
+**Verified:** `prefers-reduced-motion`, focus ring (`:focus-visible` Spark Yellow), zero monospace fonts (`layout.tsx`, `globals.css`), plus Playwright DOM checks (`2026-11-17`) across `/` `/lobby` `/play` `/result` (`360px`) & `/scoreboard` (`1280px`): `0` monospace fonts, `0` backdrop-blur, `>= 48px` controls, `tabular-nums`, `0` horizontal overflow.
+**Not yet verified:** Automated WCAG contrast audit (`C-01`), keyboard/screen-reader pass, and `/admin` routes (`BOOM-05`).
 
 ---
 

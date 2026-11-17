@@ -12,7 +12,7 @@
 
 > **Purpose.** Honest status map of what is built (`✅`), partial (`🟡`), or planned (`⬜`). Marks match [`grounding.md`](grounding.md) §3.
 
-**Operating boundary:** Phase 1 scaffold + Phase 2 remote Supabase schema & 60-question seed verified (`zamxjnsxmtsreknsqrwj`). Not deployed to Vercel; game/admin APIs not built yet.
+**Operating boundary:** Phase 1 scaffold, Phase 2 remote Supabase (`zamxjnsxmtsreknsqrwj`), Phase 3 play APIs, & `BOOM-04` player UI (`/` `/lobby` `/play` `/result` `/scoreboard`) built & E2E-verified (`2026-11-17`). Not deployed to Vercel; admin routes (`/admin/**`) pending `BOOM-05`.
 
 ---
 
@@ -24,11 +24,11 @@ flowchart TB
     P["Player Routes"]
     A["Admin Routes"]
   end
-  P --> R1["🟡 / Join Entry Shell"]
-  P --> R2["⬜ /lobby Realtime Wait"]
-  P --> R3["⬜ /play Bomb & Questions"]
-  P --> R4["⬜ /result BOOM Screen"]
-  P --> R5["⬜ /scoreboard Live Projector"]
+  P --> R1["✅ / Join Entry"]
+  P --> R2["✅ /lobby Realtime Wait"]
+  P --> R3["✅ /play Bomb & Questions"]
+  P --> R4["✅ /result BOOM Screen"]
+  P --> R5["✅ /scoreboard Live Projector"]
   A --> A1["⬜ /admin Login"]
   A --> A2["⬜ /admin/dashboard Controls"]
   A --> A3["⬜ /admin/questions CRUD"]
@@ -39,11 +39,11 @@ flowchart TB
 | Capability | Priority | Status | Where | Verified by |
 |---|---|---|---|---|
 | Next.js App Router + Tailwind v4 + `Fredoka`/`Nunito` (no mono) + `GAME_CONFIG` | Must | ✅ | `src/app/layout.tsx`, `globals.css`, `src/config/game-config.ts` | `npm run lint`, `tsc --noEmit`, `npm run build` |
-| Starter `/` join card shell | Must | 🟡 (UI shell only; submit disabled) | `src/app/page.tsx` | `npm run build` |
+| Starter `/` join card & live submit | Must | ✅ | `src/app/page.tsx`, `src/components/join-form.tsx` | `npm run build`, Playwright E2E (`2026-11-17`) |
 | Supabase schema, indexes, RLS & 60+ question seed | Must | ✅ | `supabase/migrations/20261117000001_init_schema.sql`, `supabase/seed.sql` | Remote REST RLS & seed check (`2026-11-17`: `60` questions, `1` session, `anon` denied `42501` on `questions`/`player_answers` & writes) |
-| Player join, duplicate/profanity guard & Realtime `/lobby` | Must | 🟡 (`POST /api/session/join`, `validation.ts` ✅; `/lobby` UI `⬜`) | `src/app/api/session/join/route.ts`, `src/lib/validation.ts` | `npm test` (`T-002`) |
-| Synchronized 3-2-1 countdown & server-deadline `/play` race | Must | 🟡 (`game-rules.ts`, `GET /api/play/question`, `POST /api/play/answer` ✅; `/play` UI `⬜`) | `src/lib/game-rules.ts`, `src/lib/game-service.ts`, `src/app/api/play/**` | `npm test` (`T-001`, `T-004`) |
-| One-play-only lock, `/result`, & `/scoreboard` | Must | ⬜ planned | `⬜` | — |
+| Player join, duplicate/profanity guard & Realtime `/lobby` | Must | ✅ | `src/app/lobby/page.tsx`, `src/components/lobby-view.tsx` | `npm test` (`T-002`, `T-003`), Playwright E2E (`2026-11-17`) |
+| Synchronized 3-2-1 countdown & server-deadline `/play` race | Must | ✅ | `src/app/play/page.tsx`, `src/components/play-view.tsx`, `src/components/bomb-timer.tsx` | `npm test` (`T-001`, `T-004`), Playwright E2E (`2026-11-17`) |
+| One-play-only lock, `/result`, & `/scoreboard` | Must | ✅ | `src/app/result/page.tsx`, `src/app/scoreboard/page.tsx` | `npm test` (`T-003`), Playwright E2E `T-005` (`2026-11-17`) |
 | Admin passcode auth, session controls, & question CRUD | Must | ⬜ planned | `⬜` | — |
 | Sound toggle & Framer Motion polish | Should | ⬜ planned | `⬜` | — |
 

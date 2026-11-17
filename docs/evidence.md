@@ -71,6 +71,7 @@ Resolved versions come from **`package-lock.json`** (not memory). Planned Phase 
 | `@supabase/supabase-js` | `2.119.0` | `package-lock.json` (`S-02`) | `https://supabase.com/docs/reference/javascript` | `local · 2026-11-17` | Server `service_role` repository (`BOOM-03`) + Realtime |
 | `framer-motion` | Not installed (Phase 4) | — | `https://motion.dev/docs` | `—` | Planned for BOOM / `+30s` / card motion |
 | `vitest` | `3.2.4` | `package-lock.json` (`S-02`) | `https://vitest.dev/` | `local · 2026-11-17` | Dev test runner (`npm test`, Vite 6/Rollup) |
+| `playwright` | `1.65.1` | `package-lock.json` (`S-02`) | `https://playwright.dev/` | `local · 2026-11-17` | Dev browser E2E & DOM craft check (`BOOM-04`) |
 
 ---
 

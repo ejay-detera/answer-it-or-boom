@@ -84,6 +84,12 @@ export interface JoinSessionResponse {
   status: PlayerStatus;
 }
 
+export interface SessionMeResponse {
+  session: SessionRow | null;
+  player: PlayerRow | null;
+  serverNow: string;
+}
+
 export type NextQuestionResponse =
   | {
       status: "playing";

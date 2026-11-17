@@ -67,7 +67,7 @@ node scripts/check-docs.mjs --mode=project
 
 | # | Issue or doc drift | Impact | Status |
 |---|---|---|---|
-| 1 | Phase 1 only: `/` join button intentionally disabled until Supabase schema & server actions land | Players cannot join yet | ⚠️ Open (expected at Phase 1) |
+| 1 | Phase 1 only: `/` join button intentionally disabled until Supabase schema & server actions land | Players cannot join yet | ✅ Resolved `2026-11-17` (`JoinForm` wired in `BOOM-04`) |
 
 ## 8. Code Patterns and Economy
 

@@ -30,6 +30,7 @@
 | ID | Method / Op | Path | Exposure | Auth & Scope | Purpose | Status | Idempotent | Tests |
 |---|---|---|---|---|---|---|:---:|---|
 | API-01 | `POST` | `/api/session/join` | Public | Open when `waiting` & `!lobby_locked` | Join cadet to active session | ✅ | No | `T-002` |
+| API-01b | `GET` | `/api/session/me` | Public / Player | Reads `boom_player_id` cookie (`null` if missing/kicked) | Restore player & session state + `serverNow` | ✅ | Yes | `T-003` |
 | API-02 | `GET` | `/api/play/question` | Player | Valid `boom_player_id` cookie in `playing` state | Fetch next unseen question (no `correct_index`) + `serverNow` | ✅ | Yes | `T-004` |
 | API-03 | `POST` | `/api/play/answer` | Player | Valid `boom_player_id` cookie + `now <= deadline` | Validate answer, update score/streak/deadline | ✅ | Yes (`player_id, question_id`) | `T-001`, `T-004` |
 | API-04 | `POST` | `/api/admin/login` | Public | `ADMIN_PASSCODE` check | Set signed `httpOnly` admin cookie | ⬜ | Yes | `T-006` |
@@ -72,8 +73,8 @@
 
 | Channel / Table | Subscribers | Events | Payload scope | Status |
 |---|---|---|---|---|
-| `sessions` | `/lobby`, `/play`, `/scoreboard`, `/admin/dashboard` | `UPDATE` | `status`, `lobby_locked`, `started_at` | ⬜ |
-| `players` | `/lobby`, `/scoreboard`, `/admin/dashboard` | `INSERT`, `UPDATE`, `DELETE` | Public leaderboard/lobby fields only | ⬜ |
+| `sessions` | `/lobby`, `/play`, `/result`, `/scoreboard` (admin `⬜`) | `UPDATE` | `status`, `lobby_locked`, `started_at` | ✅ (player routes verified via Playwright E2E `2026-11-17`) |
+| `players` | `/lobby`, `/result`, `/scoreboard` (admin `⬜`) | `INSERT`, `UPDATE`, `DELETE` | Public leaderboard/lobby fields only | ✅ (player routes verified via Playwright E2E `2026-11-17`) |
 
 ## 6. External APIs Consumed
 
