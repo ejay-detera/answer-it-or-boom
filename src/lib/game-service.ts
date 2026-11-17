@@ -46,6 +46,7 @@ export interface GameRepository {
     playerId: string,
     patch: PlayerProgressPatch
   ): Promise<PlayerRow>;
+  deleteWaitingPlayer(playerId: string): Promise<boolean>;
 }
 
 export type ServiceFailure = {
@@ -431,4 +432,31 @@ export async function submitAnswer(
       status: nextStatus,
     },
   };
+}
+
+/** Allows a cadet in a waiting lobby to leave and clear their seat before the game starts. */
+export async function leaveWaitingLobby(
+  repo: GameRepository,
+  playerId: string | undefined
+): Promise<ServiceResult<{ left: boolean }>> {
+  if (!playerId) {
+    return { ok: true, status: 200, data: { left: false } };
+  }
+
+  const player = await repo.getPlayerById(playerId);
+  if (!player) {
+    return { ok: true, status: 200, data: { left: false } };
+  }
+
+  const session = await repo.getSessionById(player.session_id);
+  if (player.status !== "waiting" || (session && session.status !== "waiting")) {
+    return fail(
+      403,
+      "ALREADY_PLAYED",
+      "You cannot leave once the game has started — one try per session."
+    );
+  }
+
+  const deleted = await repo.deleteWaitingPlayer(player.id);
+  return { ok: true, status: 200, data: { left: deleted } };
 }

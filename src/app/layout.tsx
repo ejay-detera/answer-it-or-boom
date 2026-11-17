@@ -18,6 +18,11 @@ export const metadata: Metadata = {
   title: "Answer It! or BOOM!",
   description:
     "A fast, real-time icebreaker quiz game for software developer cadet onboarding.",
+  icons: {
+    icon: [{ url: "/images/logo-icon.svg", type: "image/svg+xml" }],
+    shortcut: "/images/logo-icon.svg",
+    apple: "/images/logo-icon.svg",
+  },
 };
 
 export default function RootLayout({

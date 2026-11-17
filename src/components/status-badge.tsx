@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { PlayerStatus, SessionStatus } from "@/types/game";
 
 type BadgeStatus = PlayerStatus | SessionStatus;
@@ -107,34 +108,14 @@ export function StatusBadge({
 
 export function BombMark({ size = 48 }: { size?: number }) {
   return (
-    <svg
+    <Image
+      src="/images/logo-icon.svg"
+      alt=""
       width={size}
       height={size}
-      viewBox="0 0 48 48"
-      fill="none"
+      unoptimized
       aria-hidden="true"
       className="shrink-0"
-    >
-      <circle
-        cx="22"
-        cy="28"
-        r="14"
-        fill="#2A2F40"
-        stroke="#FF7A1A"
-        strokeWidth="2.5"
-      />
-      <path
-        d="M27 15C29 10 34 8 38 9"
-        stroke="#FFC933"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-      <path
-        d="M39 5V13M35 9H43"
-        stroke="#FF7A1A"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-    </svg>
+    />
   );
 }

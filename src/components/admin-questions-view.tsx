@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BombMark } from "@/components/status-badge";
+import { ComicStageFrame, ComicSticker } from "@/components/comic-shell";
 import type {
   ApiErrorEnvelope,
   QuestionCategory,
@@ -184,30 +184,26 @@ export function AdminQuestionsView() {
   );
 
   return (
-    <main className="flex-1 px-4 py-8">
-      <div className="mx-auto w-full max-w-5xl space-y-6">
-        <header className="rounded-3xl bg-surface border border-border-ash p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <BombMark size={44} />
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
-                Question Pool
-              </h1>
-              <p className="text-sm text-text-muted mt-0.5 tabular-nums">
-                {activeCount} active / {questions.length} total questions
-              </p>
-            </div>
-          </div>
-
+    <ComicStageFrame
+      bannerTitle="Question Pool"
+      bannerTone="default"
+      maxWidthClass="max-w-6xl"
+      rightSlot={
+        <>
+          <ComicSticker tone="green" tilt="left">
+            {activeCount} ACTIVE / {questions.length} TOTAL
+          </ComicSticker>
           <Link
             href="/admin/dashboard"
             className="min-h-12 rounded-2xl bg-surface-elevated border border-border-ash px-5 inline-flex items-center justify-center text-sm font-bold text-text-primary hover:border-accent-orange"
           >
             Back to Dashboard
           </Link>
-        </header>
-
-        <section className="rounded-3xl bg-surface border border-border-ash p-5 sm:p-6 space-y-4">
+        </>
+      }
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="lg:col-span-5 rounded-2xl bg-bg-primary border-2 border-border-ash p-5 space-y-4">
           <h2 className="text-xl font-bold text-text-primary">
             {editingId ? "Edit Question" : "Add Question"}
           </h2>
@@ -237,10 +233,10 @@ export function AdminQuestionsView() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               {options.map((opt, idx) => (
                 <div key={idx} className="space-y-1.5">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <label
                       htmlFor={`q-opt-${idx}`}
                       className="text-xs font-semibold text-text-muted"
@@ -319,7 +315,7 @@ export function AdminQuestionsView() {
               <button
                 type="submit"
                 disabled={saving}
-                className="min-h-12 rounded-2xl bg-accent-orange text-bg-primary font-display font-bold px-6 hover:brightness-105 disabled:opacity-60 cursor-pointer"
+                className="min-h-12 rounded-2xl bg-accent-orange text-bg-primary font-display font-bold px-6 transition-transform active:scale-[0.99] hover:brightness-105 disabled:opacity-60 cursor-pointer"
               >
                 {saving ? "Saving..." : editingId ? "Update Question" : "Add Question"}
               </button>
@@ -334,9 +330,9 @@ export function AdminQuestionsView() {
               ) : null}
             </div>
           </form>
-        </section>
+        </div>
 
-        <section className="rounded-3xl bg-surface border border-border-ash p-5 sm:p-6 space-y-4">
+        <div className="lg:col-span-7 rounded-2xl bg-bg-primary border-2 border-border-ash p-5 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-bold text-text-primary">Saved Questions</h2>
             <div className="flex flex-wrap gap-2">
@@ -364,7 +360,7 @@ export function AdminQuestionsView() {
               {visibleQuestions.map((q) => (
                 <li
                   key={q.id}
-                  className="rounded-2xl bg-bg-primary border border-border-ash p-4 space-y-3"
+                  className="rounded-2xl bg-surface border border-border-ash p-4 space-y-3"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="space-y-1 flex-1 min-w-0">
@@ -408,8 +404,8 @@ export function AdminQuestionsView() {
               ))}
             </ul>
           )}
-        </section>
+        </div>
       </div>
-    </main>
+    </ComicStageFrame>
   );
 }

@@ -2,7 +2,13 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { AdminRedirectIfAuthed } from "@/components/admin-gate";
 import { AdminLoginForm } from "@/components/admin-login-form";
-import { BombMark } from "@/components/status-badge";
+import {
+  BombSceneArt,
+  ComicCutoutFrame,
+  ComicLeftPanel,
+  ComicStageFrame,
+  ComicSticker,
+} from "@/components/comic-shell";
 
 export default function AdminLoginPage() {
   return (
@@ -14,35 +20,52 @@ export default function AdminLoginPage() {
       }
     >
       <AdminRedirectIfAuthed>
-        <main className="flex-1 flex items-center justify-center px-4 py-10">
-          <section className="w-full max-w-md rounded-3xl bg-surface border border-border-ash p-6 sm:p-8 space-y-6">
-            <div className="flex items-center gap-4">
-              <BombMark size={44} />
-              <div>
-                <h1 className="text-3xl font-bold text-text-primary">
-                  Facilitator Login
-                </h1>
-                <p className="text-sm text-text-muted mt-0.5">
-                  Control lobby, bomb timer, and questions
+        <ComicStageFrame bannerTitle="Facilitator Login" bannerTone="default">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <ComicLeftPanel className="md:col-span-5">
+              <ComicCutoutFrame>
+                <BombSceneArt variant="admin" />
+              </ComicCutoutFrame>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                <ComicSticker tone="orange" tilt="left">
+                  START & LOCK
+                </ComicSticker>
+                <ComicSticker tone="blue" tilt="right">
+                  QUESTION POOL
+                </ComicSticker>
+              </div>
+            </ComicLeftPanel>
+
+            <div className="md:col-span-7 space-y-5">
+              <div className="rounded-2xl bg-bg-primary border border-border-ash p-4 sm:p-5 space-y-1.5">
+                <h2 className="text-xl font-bold text-text-primary">
+                  Host Command Console
+                </h2>
+                <p className="text-sm text-text-muted leading-relaxed">
+                  Control the waiting lobby, trigger the synchronized 3-2-1 bomb launch, and manage active quiz questions.
                 </p>
               </div>
-            </div>
 
-            <AdminLoginForm />
+              <AdminLoginForm />
 
-            <div className="pt-4 border-t border-border-ash flex items-center justify-between text-sm">
-              <Link href="/" className="text-info-blue font-semibold hover:underline">
-                Back to Player Join
-              </Link>
-              <Link
-                href="/scoreboard"
-                className="text-text-muted font-semibold hover:text-text-primary"
-              >
-                Scoreboard
-              </Link>
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-3 text-sm">
+                <Link
+                  href="/"
+                  className="min-h-12 inline-flex items-center text-info-blue font-bold hover:underline"
+                >
+                  Back to Player Join
+                </Link>
+                <Link
+                  href="/scoreboard"
+                  className="min-h-12 inline-flex items-center text-text-muted font-bold hover:text-text-primary"
+                >
+                  Scoreboard
+                </Link>
+              </div>
             </div>
-          </section>
-        </main>
+          </div>
+        </ComicStageFrame>
       </AdminRedirectIfAuthed>
     </Suspense>
   );

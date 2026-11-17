@@ -104,6 +104,17 @@ export function createSupabaseGameRepository(): GameRepository {
       if (error) throw error;
       return data;
     },
+
+    async deleteWaitingPlayer(playerId) {
+      const { data, error } = await db
+        .from("players")
+        .delete()
+        .eq("id", playerId)
+        .eq("status", "waiting")
+        .select("id");
+      if (error) throw error;
+      return (data?.length ?? 0) > 0;
+    },
   };
 }
 

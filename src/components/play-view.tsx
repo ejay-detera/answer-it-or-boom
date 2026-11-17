@@ -4,6 +4,11 @@ import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BombTimer } from "@/components/bomb-timer";
+import {
+  ComicLeftPanel,
+  ComicStageFrame,
+  ComicSticker,
+} from "@/components/comic-shell";
 import { SoundToggle } from "@/components/sound-toggle";
 import { playSoundEffect } from "@/lib/sound-effects";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
@@ -152,7 +157,6 @@ export function PlayView() {
 
   const handleTimerExpire = useCallback(async () => {
     try {
-      // Trigger server-side expiry sync so /scoreboard updates immediately
       await fetch("/api/session/me", { cache: "no-store" });
     } catch {
       // Navigate regardless of transient error
@@ -233,135 +237,148 @@ export function PlayView() {
 
   if (loading) {
     return (
-      <main className="flex-1 flex items-center justify-center px-4 py-10">
-        <section className="w-full max-w-2xl rounded-3xl bg-surface border border-border-ash p-6 sm:p-8 text-center">
-          <p className="text-base text-text-muted">Arming bomb timer and loading question...</p>
-        </section>
-      </main>
+      <ComicStageFrame bannerTitle="Answer or BOOM!" maxWidthClass="max-w-5xl">
+        <div className="rounded-2xl bg-bg-primary border border-border-ash p-8 text-center">
+          <p className="text-base text-text-muted">
+            Arming bomb timer and loading question...
+          </p>
+        </div>
+      </ComicStageFrame>
     );
   }
 
   return (
-    <main className="flex-1 flex items-center justify-center px-4 py-6 sm:py-10">
-      <section className="w-full max-w-2xl rounded-3xl bg-surface border border-border-ash p-5 sm:p-8 space-y-6">
-        <div className="flex items-center justify-end">
-          <SoundToggle />
-        </div>
-
-        {deadlineIso ? (
-          <BombTimer
-            deadlineIso={deadlineIso}
-            serverOffsetMs={serverOffsetMs}
-            onExpire={handleTimerExpire}
-          />
-        ) : null}
-
-        <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-2xl bg-surface-elevated border border-border-ash px-4 py-3">
-            <p className="text-xs font-semibold text-text-muted">Score</p>
-            <p className="font-display font-bold tabular-nums text-2xl text-accent-orange">
-              {score}
-            </p>
-          </div>
-          <div className="rounded-2xl bg-surface-elevated border border-border-ash px-4 py-3">
-            <p className="text-xs font-semibold text-text-muted">Streak</p>
-            <p className="font-display font-bold tabular-nums text-2xl text-accent-yellow">
-              {streak}
-            </p>
-          </div>
-          <div className="rounded-2xl bg-surface-elevated border border-border-ash px-4 py-3">
-            <p className="text-xs font-semibold text-text-muted">Answered</p>
-            <p className="font-display font-bold tabular-nums text-2xl text-text-primary">
-              {answeredCount}
-            </p>
-          </div>
-        </div>
-
-        <AnimatePresence mode="wait">
-          {feedback ? (
-            <motion.div
-              key={feedback.text}
-              role="status"
-              aria-live="polite"
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 8, scale: 0.96 }}
-              animate={
-                prefersReducedMotion
-                  ? { opacity: 1 }
-                  : feedback.tone === "wrong"
-                    ? { opacity: 1, x: [0, -6, 6, -4, 4, 0], y: 0, scale: 1 }
-                    : { opacity: 1, y: 0, scale: 1 }
-              }
-              exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-              transition={{ duration: prefersReducedMotion ? 0.01 : 0.22 }}
-              className={`rounded-2xl px-4 py-3 text-sm font-bold border ${
-                feedback.tone === "correct"
-                  ? "bg-surface-elevated border-success-green text-success-green"
-                  : "bg-surface-elevated border-danger-red text-danger-red"
-              }`}
-            >
-              {feedback.text}
-            </motion.div>
+    <ComicStageFrame
+      bannerTitle="Answer or BOOM!"
+      bannerTone="orange"
+      maxWidthClass="max-w-5xl"
+      rightSlot={<SoundToggle />}
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <ComicLeftPanel className="lg:col-span-5">
+          {deadlineIso ? (
+            <BombTimer
+              deadlineIso={deadlineIso}
+              serverOffsetMs={serverOffsetMs}
+              onExpire={handleTimerExpire}
+            />
           ) : null}
-        </AnimatePresence>
 
-        {error ? (
-          <p role="alert" className="text-sm font-semibold text-danger-red">
-            {error}
-          </p>
-        ) : null}
-
-        {question ? (
-          <motion.div
-            key={question.id}
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: prefersReducedMotion ? 0.01 : 0.15 }}
-            className="space-y-4"
-          >
-            <div className="flex items-center justify-between text-xs font-semibold text-text-muted uppercase tracking-wider">
-              <span>{question.category}</span>
-              <span>{question.difficulty}</span>
+          <div className="grid grid-cols-3 gap-2.5">
+            <div className="rounded-2xl bg-surface border border-border-ash px-3.5 py-3">
+              <p className="text-xs font-semibold text-text-muted">Score</p>
+              <p className="font-display font-bold tabular-nums text-2xl text-accent-orange">
+                {score}
+              </p>
             </div>
+            <div className="rounded-2xl bg-surface border border-border-ash px-3.5 py-3">
+              <p className="text-xs font-semibold text-text-muted">Streak</p>
+              <p className="font-display font-bold tabular-nums text-2xl text-accent-yellow">
+                {streak}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-surface border border-border-ash px-3.5 py-3">
+              <p className="text-xs font-semibold text-text-muted">Answered</p>
+              <p className="font-display font-bold tabular-nums text-2xl text-text-primary">
+                {answeredCount}
+              </p>
+            </div>
+          </div>
 
-            <h1 className="text-xl sm:text-2xl font-bold leading-snug text-text-primary">
-              {question.question}
-            </h1>
+          <AnimatePresence mode="wait">
+            {feedback ? (
+              <motion.div
+                key={feedback.text}
+                role="status"
+                aria-live="polite"
+                initial={
+                  prefersReducedMotion ? false : { y: 6, scale: 0.96 }
+                }
+                animate={
+                  prefersReducedMotion
+                    ? { scale: 1 }
+                    : feedback.tone === "wrong"
+                      ? { x: [0, -7, 7, -4, 4, 0], y: 0, scale: 1 }
+                      : { y: 0, scale: 1 }
+                }
+                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                transition={{ duration: prefersReducedMotion ? 0.01 : 0.2 }}
+                className={`rounded-2xl px-4 py-3 text-sm font-bold border-2 ${
+                  feedback.tone === "correct"
+                    ? "bg-surface border-success-green text-success-green"
+                    : "bg-surface border-danger-red text-danger-red"
+                }`}
+              >
+                {feedback.text}
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </ComicLeftPanel>
 
-            <div className="grid grid-cols-1 gap-3">
-              {question.options.map((option, idx) => {
-                const isSelected = submittingIndex === idx;
-                const letter = OPTION_LETTERS[idx] ?? String(idx + 1);
-                return (
-                  <button
-                    key={`${question.id}-${idx}`}
-                    type="button"
-                    disabled={submittingIndex !== null}
-                    onClick={() => void handleSelectOption(idx)}
-                    className={`min-h-12 w-full rounded-2xl border px-4 py-3 text-left flex items-center gap-3.5 transition-colors cursor-pointer disabled:cursor-not-allowed ${
-                      isSelected
-                        ? "bg-accent-orange border-accent-orange text-bg-primary font-bold"
-                        : "bg-surface-elevated border-border-ash text-text-primary hover:border-accent-orange disabled:opacity-70"
-                    }`}
-                  >
-                    <span
-                      className={`font-display font-bold tabular-nums text-base shrink-0 w-7 h-7 rounded-xl flex items-center justify-center ${
+        <div className="lg:col-span-7 space-y-4">
+          {error ? (
+            <p role="alert" className="text-sm font-semibold text-danger-red">
+              {error}
+            </p>
+          ) : null}
+
+          {question ? (
+            <motion.div
+              key={question.id}
+              initial={prefersReducedMotion ? false : { y: 6 }}
+              animate={{ y: 0 }}
+              transition={{ duration: prefersReducedMotion ? 0.01 : 0.16 }}
+              className="rounded-2xl bg-bg-primary border-2 border-border-ash p-5 sm:p-6 space-y-5"
+            >
+              <h2 className="text-xl sm:text-2xl font-bold leading-snug text-text-primary">
+                {question.question}
+              </h2>
+
+              <div className="grid grid-cols-1 gap-3">
+                {question.options.map((option, idx) => {
+                  const isSelected = submittingIndex === idx;
+                  const letter = OPTION_LETTERS[idx] ?? String(idx + 1);
+                  return (
+                    <button
+                      key={`${question.id}-${idx}`}
+                      type="button"
+                      disabled={submittingIndex !== null}
+                      onClick={() => void handleSelectOption(idx)}
+                      className={`min-h-12 w-full rounded-2xl border-2 px-4 py-3 text-left flex items-center gap-3.5 transition-transform active:scale-[0.99] cursor-pointer disabled:cursor-not-allowed ${
                         isSelected
-                          ? "bg-bg-primary text-accent-orange"
-                          : "bg-bg-primary text-accent-yellow"
+                          ? "bg-accent-orange border-accent-orange text-bg-primary font-bold"
+                          : "bg-surface border-border-ash text-text-primary hover:border-accent-orange disabled:opacity-70"
                       }`}
                     >
-                      {letter}
-                    </span>
-                    <span className="text-base font-semibold leading-snug">
-                      {option}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-        ) : null}
-      </section>
-    </main>
+                      <span
+                        className={`font-display font-bold tabular-nums text-base shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${
+                          isSelected
+                            ? "bg-bg-primary text-accent-orange"
+                            : "bg-surface-elevated text-accent-yellow"
+                        }`}
+                      >
+                        {letter}
+                      </span>
+                      <span className="text-base font-semibold leading-snug">
+                        {option}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <ComicSticker tone="blue" tilt="left">
+                  {question.category}
+                </ComicSticker>
+                <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+                  Difficulty: {question.difficulty}
+                </span>
+              </div>
+            </motion.div>
+          ) : null}
+        </div>
+      </div>
+    </ComicStageFrame>
   );
 }
