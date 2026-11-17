@@ -27,15 +27,15 @@ export function ComicBackdrop() {
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 overflow-hidden z-0"
     >
-      {/* Subtle vertical stage columns */}
-      <div className="absolute inset-0 grid grid-cols-6 sm:grid-cols-12 gap-4 px-2 opacity-25">
-        {Array.from({ length: 12 }).map((_, idx) => (
+      {/* Slowly drifting carnival backdrop stripes (seamless 2x loop) */}
+      <div className="animate-stripes-drift flex w-[200%] h-full opacity-30">
+        {Array.from({ length: 24 }).map((_, idx) => (
           <div
             key={idx}
             className={
               idx % 2 === 0
-                ? "h-full bg-surface border-x border-border-ash/40"
-                : "h-full bg-transparent"
+                ? "flex-1 h-full bg-surface border-x border-border-ash/35"
+                : "flex-1 h-full bg-transparent"
             }
           />
         ))}
