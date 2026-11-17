@@ -12,7 +12,7 @@
 
 > **Purpose.** Honest status map of what is built (`✅`), partial (`🟡`), or planned (`⬜`). Marks match [`grounding.md`](grounding.md) §3.
 
-**Operating boundary:** Local Phase 1 baseline Next.js scaffold only. Not deployed; no database connected yet.
+**Operating boundary:** Phase 1 scaffold + Phase 2 remote Supabase schema & 60-question seed verified (`zamxjnsxmtsreknsqrwj`). Not deployed to Vercel; game/admin APIs not built yet.
 
 ---
 
@@ -40,7 +40,7 @@ flowchart TB
 |---|---|---|---|---|
 | Next.js App Router + Tailwind v4 + `Fredoka`/`Nunito` (no mono) + `GAME_CONFIG` | Must | ✅ | `src/app/layout.tsx`, `globals.css`, `src/config/game-config.ts` | `npm run lint`, `tsc --noEmit`, `npm run build` |
 | Starter `/` join card shell | Must | 🟡 (UI shell only; submit disabled) | `src/app/page.tsx` | `npm run build` |
-| Supabase schema, indexes, RLS & 60+ question seed | Must | ⬜ planned | `supabase/` (not created) | — |
+| Supabase schema, indexes, RLS & 60+ question seed | Must | ✅ | `supabase/migrations/20261117000001_init_schema.sql`, `supabase/seed.sql` | Remote REST RLS & seed check (`2026-11-17`: `60` questions, `1` session, `anon` denied `42501` on `questions`/`player_answers` & writes) |
 | Player join, duplicate/profanity guard & Realtime `/lobby` | Must | ⬜ planned | `⬜` | — |
 | Synchronized 3-2-1 countdown & server-deadline `/play` race | Must | ⬜ planned | `⬜` | — |
 | One-play-only lock, `/result`, & `/scoreboard` | Must | ⬜ planned | `⬜` | — |

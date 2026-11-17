@@ -78,7 +78,7 @@ Resolved versions come from **`package-lock.json`** (not memory). Planned Phase 
 
 | Entity | Category | Relationship status | Evidence | Date | Notes |
 |---|---|---|---|---|---|
-| Supabase | Vendor / BaaS | Target infrastructure (`S-01` §7) | `S-01` | 2026-11-17 | No project provisioned yet |
+| Supabase | Vendor / BaaS | Connected (`zamxjnsxmtsreknsqrwj`) | `S-01`, remote REST check | 2026-11-17 | Schema pushed (`20261117000001_init_schema.sql`), `1` session + `60` questions seeded, `anon` RLS verified |
 | Vercel | Hosting vendor | Target infrastructure (`S-01` §7) | `S-01` | 2026-11-17 | Not yet deployed |
 
 ---

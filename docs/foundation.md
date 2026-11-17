@@ -48,7 +48,7 @@ Architecture & surfaces: **Next.js (App Router, TypeScript)** client & Server Ac
 | System context | Internal onboarding tool: software developer cadet orientation | `S-01` |
 | Primary actors / operators | **Player (Cadet)** and **Admin (Facilitator)** | `S-01` |
 | Explicit non-goals | No player accounts/passwords, multi-room codes, PvP chat, typed answers, AI questions, replays, native mobile app, or offline play | `S-01` ([`prd.md`](prd.md) §6) |
-| Implementation status | Phase 1 scaffold (`src/app/layout.tsx`, `globals.css`, `page.tsx`, `src/config/game-config.ts`) built; Supabase/game/admin `⬜` | [`flow.md`](flow.md) |
+| Implementation status | Phase 1 scaffold + Phase 2 Supabase schema/seed (`zamxjnsxmtsreknsqrwj`) built & verified; game/admin routes `⬜` | [`flow.md`](flow.md) |
 
 ### Architecture summary in one paragraph
 
@@ -251,7 +251,7 @@ Canonical stack & trade-offs live in [`sad.md`](sad.md) §2; resolved lockfile p
 | Q1 | Admin auth mechanism | `ADMIN_PASSCODE` signed `httpOnly` cookie proposed ([`ADR-0002`](adr/ADR-0002-admin-passcode-auth.md)) | Needed before implementing `/admin` routes |
 | Q2 | Streak bonus repeatability | One-time per milestone (`3`, `5`, `10`) per run proposed | Ensures consistent scoring implementation in Phase 3 |
 | Q3 | Profanity filter scope | Lightweight client/server normalized word list `TBD` | Prevents inappropriate names on projector `/scoreboard` |
-| Q4 | Deployment targets & Supabase project | `TBD` (local + Vercel preview/prod not yet provisioned) | Needed before Phase 2 migration push |
+| Q4 | Deployment targets & Supabase project | Remote Supabase `zamxjnsxmtsreknsqrwj` provisioned, pushed & verified (`2026-11-17`); Vercel domain `TBD` | Vercel target needed before Phase 5 deploy |
 
 ### 14.1 Resolution tracker
 
