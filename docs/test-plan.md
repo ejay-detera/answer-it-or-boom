@@ -36,9 +36,9 @@ Tests run strictly against local or disposable test Supabase projects—never li
 |---|---|---|---|---|---|---|
 | BR-02 / US-02 / BOOM-03 | `+10` pts, one-time streak bonuses, `+30s` fuse, `now > deadline` rejection | `T-001` | Unit + Service | ✅ Pass (`17` total) | `2026-11-17` | `npm test` |
 | BR-01 / US-01 / BOOM-02 | Trim `2..20`, profanity, duplicate name, locked lobby rejection | `T-002` | Unit + Service | ✅ Pass | `2026-11-17` | `npm test` |
-| BR-03 / US-04 / BOOM-04 | One-play-only enforcement & reconnect state restoration | `T-003` | Service + UI | 🟡 Partial (API `ALREADY_PLAYED`/expiry pass; `/play` UI `⬜`) | `2026-11-17` | `npm test` |
-| BR-02 / US-03 / BOOM-03 | `correct_index` absent, no-repeat shuffle, pool exhaustion, duplicate answer ignore | `T-004` | Service | ✅ Pass | `2026-11-17` | `npm test` |
-| BR-04 / US-05 / BOOM-05 | Realtime `/scoreboard` tie-breaker ranking | `T-005` | E2E / Manual | **Not written** (Phase 4) | — | — |
+| BR-03 / US-04 / BOOM-04 | One-play-only enforcement & reconnect state restoration | `T-003` | Service + E2E | ✅ Pass (unit + Playwright reload & replay-lock) | `2026-11-17` | `npm test`, Playwright E2E |
+| BR-02 / US-03 / BOOM-03 | `correct_index` absent, no-repeat shuffle, pool exhaustion, duplicate answer ignore | `T-004` | Service + E2E | ✅ Pass | `2026-11-17` | `npm test`, Playwright E2E |
+| BR-04 / US-05 / BOOM-04 | Realtime `/scoreboard` tie-breaker ranking | `T-005` | Playwright E2E | ✅ Pass (`1280x800` live update + `tabular-nums`) | `2026-11-17` | Playwright E2E |
 | BR-05 / US-06..07 / BOOM-06..07 | Admin `ADMIN_PASSCODE` guard, session start/end/reset, kick, question CRUD | `T-006` | Integration | **Not written** (Phase 3) | — | — |
 
 ## 4. Coverage
@@ -58,14 +58,14 @@ Where UI exists, verify across mobile (`360px`) and projector (`1280px+`) viewpo
 
 | # | Scenario | Roles | Expected | Findings & Result | Date | Tester |
 |---:|---|---|---|---|---|---|
-| 1 | Synchronized cohort start & timer sync | `player`, `admin` | Countdown finishes together; timer extends `+30s` per right answer | Not run | — | — |
-| 2 | Early admin end & reconnect mid-run | `player`, `admin` | Active players transition to `/result` immediately; refresh preserves server `deadline` | Not run | — | — |
-| 3 | Replay attempt & unauthorized `/admin` access | `player`, Anonymous | Replay blocked to `/result`; admin routes/actions denied | Not run | — | — |
-| 4 | UI craft & zero-mono check (`dsd.md` §1.1, §2.4, §7) | `player`, `admin` | Pass on `360px` phone & `1280px` projector | Not run | — | — |
+| 1 | Synchronized cohort start & timer sync | `player` (+ SQL host trigger) | Countdown finishes together; timer extends `+30s` per right answer | 🟡 Player flow verified via SQL `countdown` trigger (`2026-11-17`); `/admin` Start UI pending `BOOM-05` | `2026-11-17` | Playwright |
+| 2 | Early admin end & reconnect mid-run | `player` (+ SQL host trigger) | Active players transition to `/result` immediately; refresh preserves server `deadline` | 🟡 Reload reconnect & Realtime `finished` → `/result` verified (`2026-11-17`); `/admin` End UI pending `BOOM-05` | `2026-11-17` | Playwright |
+| 3 | Replay attempt & unauthorized `/admin` access | `player`, Anonymous | Replay blocked to `/result`; admin routes/actions denied | 🟡 Player replay redirect (`/` & `/play` → `/result`) verified (`2026-11-17`); `/admin` guard pending `BOOM-05` | `2026-11-17` | Playwright |
+| 4 | UI craft & zero-mono check (`dsd.md` §1.1, §2.4, §7) | `player` | Pass on `360px` phone & `1280px` projector | 🟡 Player routes (`/` `/lobby` `/play` `/result` `/scoreboard`) pass zero-mono, zero-blur, `>= 48px`, `tabular-nums`, `0` overflow (`2026-11-17`); `/admin` pending `BOOM-05` | `2026-11-17` | Playwright |
 
 ---
 
 ## Self-Check
 
-- [x] Traceability matrix honestly separates `BOOM-03` passing tests (`T-001`, `T-002`, `T-004`, partial `T-003`) from `BOOM-04`/`BOOM-05` `Not written` tests
+- [x] Traceability matrix reflects `BOOM-03` (`T-001..T-004`) and `BOOM-04` (`T-003`, `T-005`) passing checks, while `/admin` (`T-006`) stays `Not written`
 - [x] Project doc check command included in §1

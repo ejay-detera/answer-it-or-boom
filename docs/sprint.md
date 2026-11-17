@@ -57,9 +57,11 @@
 | Field | Value |
 |---|---|
 | Priority | P1 |
-| Status | ⬜ To Do |
-| Impacted docs | `dsd.md`, `flow.md`, `test-plan.md` |
-| Traces | `BR-01..04` · `US-01..05` · tests `T-005` |
+| Status | ✅ Done |
+| Authorization / Blockers | Tier 2 · `playwright` (`1.65.1`) E2E + DOM craft check passed (`2026-11-17`) |
+| Impacted docs | `dsd.md`, `api.md`, `flow.md`, `test-plan.md`, `build.md`, `foundation.md`, `evidence.md` |
+| Completion evidence | Playwright Chromium headless E2E (`verify-boom-04.mjs` against `next start -p 3005` + `zamxjnsxmtsreknsqrwj`, `2026-11-17`): `/` invalid `"A"` alert, `"TestCadet"` join → `/lobby` → `/scoreboard` Realtime (`1280x800`, `tabular-nums`) → SQL `countdown` → `/play` (`correct_index` absent, answer submit, `page.reload()` state restore) → SQL `finished` Realtime → `/result` (`BOOM!`, `#1 / 1`) & one-play lock redirect; `0` monospace fonts, `0` backdrop-blur, all controls `>= 48px`, `0` horizontal overflow, `0` page errors; `npm test` (`19/19`), `lint`, `tsc`, `build`, `check-docs.mjs` exit `0` |
+| Traces | `BR-01..04` · `US-01..05` · tests `T-003`, `T-005` |
 
 ### BOOM-05 — Facilitator Auth & Admin Panel (`/admin`, `/admin/dashboard`, `/admin/questions`)
 | Field | Value |
@@ -88,3 +90,5 @@
 | 2026-11-17 | `BOOM-02` migration (`20261117000001_init_schema.sql`), `seed.sql` (60 questions), & `supabase/config.toml` authored (`🟡`) | Phase 2 DB prep | `BOOM-02` |
 | 2026-11-17 | `BOOM-02` pushed to remote `zamxjnsxmtsreknsqrwj` and verified (`60` seeded questions, `anon` RLS/write denials `42501`) → `✅ Done` | Phase 2 verification | `BOOM-02` |
 | 2026-11-17 | `BOOM-03` TDD game engine, validation, `API-01..API-03`, & Vitest suite (`17/17` passing) → `✅ Done` | Phase 3 engine & APIs | `BOOM-03` |
+| 2026-11-17 | `BOOM-04` player UI (`/`, `/lobby`, `/play`, `/result`, `/scoreboard`), `BombTimer`, `useSessionRealtime`, & `GET /api/session/me` built (`19/19` Vitest + `build` pass; live browser E2E `T-005` pending) → `🟡 Partial` | Phase 4 player UI | `BOOM-04` |
+| 2026-11-17 | `BOOM-04` verified via Playwright headless E2E (`360x780` & `1280x800`, Realtime, reload reconnect, one-play lock, DOM anti-slop checks) → `✅ Done` | Phase 4 player E2E | `BOOM-04` |

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  getCurrentPlayerState,
   getNextQuestion,
   joinSession,
   submitAnswer,
@@ -404,5 +405,81 @@ describe("submitAnswer (T-001, T-003, T-004 / API-03)", () => {
         new Date("2026-11-17T12:02:32.000Z")
       )
     ).toMatchObject({ ok: false, status: 403, error: { code: "ALREADY_PLAYED" } });
+  });
+});
+
+describe("getCurrentPlayerState & countdown transition (T-003)", () => {
+  it("returns null player when cookie is missing or kicked, while still returning latest session", async () => {
+    const repo = makeInMemoryRepo({ session: waitingSession });
+    const res = await getCurrentPlayerState(
+      repo,
+      undefined,
+      new Date("2026-11-17T11:59:00.000Z")
+    );
+    expect(res).toEqual({
+      ok: true,
+      status: 200,
+      data: {
+        session: waitingSession,
+        player: null,
+        serverNow: "2026-11-17T11:59:00.000Z",
+      },
+    });
+  });
+
+  it("activates waiting player into playing once countdown started_at arrives and expires overdue runs", async () => {
+    const countdownSession: SessionRow = {
+      ...waitingSession,
+      status: "countdown",
+      started_at: "2026-11-17T12:00:00.000Z",
+    };
+    const waitingPlayer: PlayerRow = {
+      ...playingPlayer,
+      status: "waiting",
+      deadline: null,
+      score: 0,
+      correct_count: 0,
+      streak: 0,
+      best_streak: 0,
+    };
+    const repo = makeInMemoryRepo({
+      session: countdownSession,
+      players: [waitingPlayer],
+      questions: sampleQuestions,
+    });
+
+    // Before started_at: stays waiting
+    const before = await getCurrentPlayerState(
+      repo,
+      "p-1",
+      new Date("2026-11-17T11:59:58.000Z")
+    );
+    expect(before.ok && before.data.player?.status).toBe("waiting");
+
+    // At started_at: transitions to playing with 120s deadline, and getNextQuestion works
+    const atStart = await getCurrentPlayerState(
+      repo,
+      "p-1",
+      new Date("2026-11-17T12:00:00.000Z")
+    );
+    expect(atStart.ok && atStart.data.player?.status).toBe("playing");
+    expect(atStart.ok && atStart.data.player?.deadline).toBe(
+      "2026-11-17T12:02:00.000Z"
+    );
+
+    const qRes = await getNextQuestion(
+      repo,
+      "p-1",
+      new Date("2026-11-17T12:00:05.000Z")
+    );
+    expect(qRes.ok && qRes.data.status).toBe("playing");
+
+    // Past deadline: flips to exploded
+    const afterDeadline = await getCurrentPlayerState(
+      repo,
+      "p-1",
+      new Date("2026-11-17T12:02:01.000Z")
+    );
+    expect(afterDeadline.ok && afterDeadline.data.player?.status).toBe("exploded");
   });
 });

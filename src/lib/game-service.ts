@@ -8,6 +8,7 @@ import type {
   PlayerRow,
   PublicQuestion,
   QuestionRow,
+  SessionMeResponse,
   SessionRow,
   SubmitAnswerResponse,
 } from "@/types/game";
@@ -121,38 +122,151 @@ export async function joinSession(
   }
 }
 
+function isSessionLive(session: SessionRow, now: Date): boolean {
+  if (session.status === "running") return true;
+  if (
+    session.status === "countdown" &&
+    session.started_at !== null &&
+    now.getTime() >= Date.parse(session.started_at)
+  ) {
+    return true;
+  }
+  return false;
+}
+
+async function syncPlayerLifecycle(
+  repo: GameRepository,
+  player: PlayerRow,
+  session: SessionRow,
+  now: Date
+): Promise<PlayerRow> {
+  let current = player;
+  const sessionLive = isSessionLive(session, now);
+
+  if (
+    current.status === "waiting" &&
+    sessionLive &&
+    session.started_at !== null
+  ) {
+    const deadline =
+      current.deadline ??
+      new Date(
+        Date.parse(session.started_at) + session.base_time_seconds * 1000
+      ).toISOString();
+    current = await repo.updatePlayerProgress(current.id, {
+      status: "playing",
+      deadline,
+    });
+  }
+
+  if (
+    current.status === "playing" &&
+    (session.status === "finished" || isDeadlineExpired(current.deadline, now))
+  ) {
+    current = await repo.updatePlayerProgress(current.id, {
+      status: "exploded",
+      finished_at: now.toISOString(),
+    });
+  }
+
+  return current;
+}
+
+/** Returns current session & authenticated player state (or `player: null` if missing/kicked). */
+export async function getCurrentPlayerState(
+  repo: GameRepository,
+  playerId: string | null | undefined,
+  now: Date = new Date()
+): Promise<ServiceResult<SessionMeResponse>> {
+  const serverNow = now.toISOString();
+
+  if (!playerId) {
+    return {
+      ok: true,
+      status: 200,
+      data: {
+        session: await repo.getLatestSession(),
+        player: null,
+        serverNow,
+      },
+    };
+  }
+
+  const player = await repo.getPlayerById(playerId);
+  if (!player) {
+    return {
+      ok: true,
+      status: 200,
+      data: {
+        session: await repo.getLatestSession(),
+        player: null,
+        serverNow,
+      },
+    };
+  }
+
+  const session = await repo.getSessionById(player.session_id);
+  if (!session) {
+    return {
+      ok: true,
+      status: 200,
+      data: {
+        session: await repo.getLatestSession(),
+        player: null,
+        serverNow,
+      },
+    };
+  }
+
+  const syncedPlayer = await syncPlayerLifecycle(repo, player, session, now);
+  return {
+    ok: true,
+    status: 200,
+    data: {
+      session,
+      player: syncedPlayer,
+      serverNow,
+    },
+  };
+}
+
 async function loadPlayingPlayerContext(
   repo: GameRepository,
   playerId: string | null | undefined,
   now: Date
 ): Promise<
   | { ok: true; player: PlayerRow; session: SessionRow }
-  | { ok: false; status: number; error: ApiErrorEnvelope["error"] }
+  | ServiceFailure
 > {
   if (!playerId) {
     return fail(401, "UNAUTHORIZED", "Missing player session.");
   }
 
-  const player = await repo.getPlayerById(playerId);
-  if (!player) {
+  const rawPlayer = await repo.getPlayerById(playerId);
+  if (!rawPlayer) {
     return fail(401, "UNAUTHORIZED", "Player session not found.");
   }
 
-  if (player.status === "exploded" || player.status === "completed") {
-    return fail(403, "ALREADY_PLAYED", "You have already completed this session.");
-  }
-
-  const session = await repo.getSessionById(player.session_id);
-  if (!session || session.status !== "running" || player.status !== "playing") {
+  const session = await repo.getSessionById(rawPlayer.session_id);
+  if (!session) {
     return fail(409, "NOT_RUNNING", "The session is not currently running.");
   }
 
-  if (isDeadlineExpired(player.deadline, now)) {
-    await repo.updatePlayerProgress(player.id, {
-      status: "exploded",
-      finished_at: now.toISOString(),
-    });
-    return fail(409, "TIME_EXPIRED", "BOOM! Your bomb fuse expired.");
+  const player = await syncPlayerLifecycle(repo, rawPlayer, session, now);
+
+  if (player.status === "exploded" || player.status === "completed") {
+    if (
+      rawPlayer.status === "playing" &&
+      player.status === "exploded" &&
+      session.status !== "finished"
+    ) {
+      return fail(409, "TIME_EXPIRED", "BOOM! Your bomb fuse expired.");
+    }
+    return fail(403, "ALREADY_PLAYED", "You have already completed this session.");
+  }
+
+  if (!isSessionLive(session, now) || player.status !== "playing") {
+    return fail(409, "NOT_RUNNING", "The session is not currently running.");
   }
 
   return { ok: true, player, session };

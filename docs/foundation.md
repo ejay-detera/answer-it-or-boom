@@ -48,7 +48,7 @@ Architecture & surfaces: **Next.js (App Router, TypeScript)** client & Server Ac
 | System context | Internal onboarding tool: software developer cadet orientation | `S-01` |
 | Primary actors / operators | **Player (Cadet)** and **Admin (Facilitator)** | `S-01` |
 | Explicit non-goals | No player accounts/passwords, multi-room codes, PvP chat, typed answers, AI questions, replays, native mobile app, or offline play | `S-01` ([`prd.md`](prd.md) §6) |
-| Implementation status | Phase 1 scaffold + Phase 2 Supabase schema/seed (`zamxjnsxmtsreknsqrwj`) built & verified; game/admin routes `⬜` | [`flow.md`](flow.md) |
+| Implementation status | Phase 1 scaffold, Phase 2 Supabase (`zamxjnsxmtsreknsqrwj`), Phase 3 play APIs, & `BOOM-04` player UI built & E2E-verified (`2026-11-17`); `/admin` routes `⬜` | [`flow.md`](flow.md) |
 
 ### Architecture summary in one paragraph
 
@@ -66,9 +66,9 @@ Next.js App Router serves responsive player routes (`/`, `/lobby`, `/play`, `/re
 | Capability | In source scope? | Implementation status |
 |---|---:|---:|
 | Cartoon-bomb theme, fonts (`Fredoka`/`Nunito`, no mono), `GAME_CONFIG` | Yes | ✅ (built & verified via build/lint) |
-| Player join, lobby, synchronized start, and one-play enforcement | Yes | ⬜ |
-| Server-authoritative timer, scoring, streak bonus, & no-repeat questions | Yes | ⬜ |
-| Live projector `/scoreboard` via Supabase Realtime | Yes | ⬜ |
+| Player join, lobby, synchronized start, and one-play enforcement | Yes | ✅ (built & verified via `npm test` + Playwright E2E `2026-11-17`) |
+| Server-authoritative timer, scoring, streak bonus, & no-repeat questions | Yes | ✅ (built & verified via `npm test` + Playwright E2E `2026-11-17`) |
+| Live projector `/scoreboard` via Supabase Realtime | Yes | ✅ (built & verified via Playwright E2E `2026-11-17`) |
 | Admin passcode login, session controls, & question CRUD | Yes | ⬜ |
 
 ### Team / maintainers
