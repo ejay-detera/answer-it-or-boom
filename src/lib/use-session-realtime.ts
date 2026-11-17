@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import type { PlayerRow, SessionRow } from "@/types/game";
 
@@ -9,6 +9,42 @@ export interface SessionRealtimeState {
   players: PlayerRow[];
   loading: boolean;
   error: string | null;
+  refresh: () => Promise<void>;
+}
+
+async function fetchSessionSnapshot(
+  initialSessionId?: string | null
+): Promise<{ session: SessionRow | null; players: PlayerRow[] }> {
+  const supabase = createBrowserSupabaseClient();
+  const sessionQuery = initialSessionId
+    ? supabase
+        .from("sessions")
+        .select("*")
+        .eq("id", initialSessionId)
+        .maybeSingle<SessionRow>()
+    : supabase
+        .from("sessions")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle<SessionRow>();
+
+  const { data: sessionRow, error: sessionErr } = await sessionQuery;
+  if (sessionErr) throw sessionErr;
+
+  if (!sessionRow) {
+    return { session: null, players: [] };
+  }
+
+  const { data: playerRows, error: playersErr } = await supabase
+    .from("players")
+    .select("*")
+    .eq("session_id", sessionRow.id)
+    .order("joined_at", { ascending: true })
+    .returns<PlayerRow[]>();
+  if (playersErr) throw playersErr;
+
+  return { session: sessionRow, players: playerRows ?? [] };
 }
 
 /** Subscribes to live `sessions` and `players` updates over read-only Supabase Realtime. */
@@ -20,44 +56,31 @@ export function useSessionRealtime(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const refresh = useCallback(async () => {
+    try {
+      const next = await fetchSessionSnapshot(initialSessionId);
+      setSession(next.session);
+      setPlayers(next.players);
+      setError(null);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to connect to live session."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [initialSessionId]);
+
   useEffect(() => {
     let active = true;
     const supabase = createBrowserSupabaseClient();
 
-    async function loadInitial() {
+    async function sync() {
       try {
-        const sessionQuery = initialSessionId
-          ? supabase
-              .from("sessions")
-              .select("*")
-              .eq("id", initialSessionId)
-              .maybeSingle<SessionRow>()
-          : supabase
-              .from("sessions")
-              .select("*")
-              .order("created_at", { ascending: false })
-              .limit(1)
-              .maybeSingle<SessionRow>();
-
-        const { data: sessionRow, error: sessionErr } = await sessionQuery;
-        if (sessionErr) throw sessionErr;
+        const next = await fetchSessionSnapshot(initialSessionId);
         if (!active) return;
-
-        setSession(sessionRow ?? null);
-
-        if (sessionRow) {
-          const { data: playerRows, error: playersErr } = await supabase
-            .from("players")
-            .select("*")
-            .eq("session_id", sessionRow.id)
-            .order("joined_at", { ascending: true })
-            .returns<PlayerRow[]>();
-          if (playersErr) throw playersErr;
-          if (!active) return;
-          setPlayers(playerRows ?? []);
-        } else {
-          setPlayers([]);
-        }
+        setSession(next.session);
+        setPlayers(next.players);
         setError(null);
       } catch (err) {
         if (!active) return;
@@ -69,7 +92,7 @@ export function useSessionRealtime(
       }
     }
 
-    void loadInitial();
+    void sync();
 
     const channel = supabase
       .channel(`boom-live-${initialSessionId ?? "latest"}`)
@@ -110,7 +133,11 @@ export function useSessionRealtime(
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED" && active) {
+          void sync();
+        }
+      });
 
     return () => {
       active = false;
@@ -118,5 +145,5 @@ export function useSessionRealtime(
     };
   }, [initialSessionId]);
 
-  return { session, players, loading, error };
+  return { session, players, loading, error, refresh };
 }

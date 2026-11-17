@@ -39,7 +39,7 @@ Tests run strictly against local or disposable test Supabase projects—never li
 | BR-03 / US-04 / BOOM-04 | One-play-only enforcement & reconnect state restoration | `T-003` | Service + E2E | ✅ Pass (unit + Playwright reload & replay-lock) | `2026-11-17` | `npm test`, Playwright E2E |
 | BR-02 / US-03 / BOOM-03 | `correct_index` absent, no-repeat shuffle, pool exhaustion, duplicate answer ignore | `T-004` | Service + E2E | ✅ Pass | `2026-11-17` | `npm test`, Playwright E2E |
 | BR-04 / US-05 / BOOM-04 | Realtime `/scoreboard` tie-breaker ranking | `T-005` | Playwright E2E | ✅ Pass (`1280x800` live update + `tabular-nums`) | `2026-11-17` | Playwright E2E |
-| BR-05 / US-06..07 / BOOM-06..07 | Admin `ADMIN_PASSCODE` guard, session start/end/reset, kick, question CRUD | `T-006` | Integration | **Not written** (Phase 3) | — | — |
+| BR-05 / US-06..07 / BOOM-05 | Admin `ADMIN_PASSCODE` guard, session start/end/reset, kick, question CRUD | `T-006` | Unit + Service + E2E | ✅ Pass (`24/24` Vitest + Playwright E2E) | `2026-11-17` | `npm test`, Playwright E2E |
 
 ## 4. Coverage
 
@@ -58,14 +58,14 @@ Where UI exists, verify across mobile (`360px`) and projector (`1280px+`) viewpo
 
 | # | Scenario | Roles | Expected | Findings & Result | Date | Tester |
 |---:|---|---|---|---|---|---|
-| 1 | Synchronized cohort start & timer sync | `player` (+ SQL host trigger) | Countdown finishes together; timer extends `+30s` per right answer | 🟡 Player flow verified via SQL `countdown` trigger (`2026-11-17`); `/admin` Start UI pending `BOOM-05` | `2026-11-17` | Playwright |
-| 2 | Early admin end & reconnect mid-run | `player` (+ SQL host trigger) | Active players transition to `/result` immediately; refresh preserves server `deadline` | 🟡 Reload reconnect & Realtime `finished` → `/result` verified (`2026-11-17`); `/admin` End UI pending `BOOM-05` | `2026-11-17` | Playwright |
-| 3 | Replay attempt & unauthorized `/admin` access | `player`, Anonymous | Replay blocked to `/result`; admin routes/actions denied | 🟡 Player replay redirect (`/` & `/play` → `/result`) verified (`2026-11-17`); `/admin` guard pending `BOOM-05` | `2026-11-17` | Playwright |
-| 4 | UI craft & zero-mono check (`dsd.md` §1.1, §2.4, §7) | `player` | Pass on `360px` phone & `1280px` projector | 🟡 Player routes (`/` `/lobby` `/play` `/result` `/scoreboard`) pass zero-mono, zero-blur, `>= 48px`, `tabular-nums`, `0` overflow (`2026-11-17`); `/admin` pending `BOOM-05` | `2026-11-17` | Playwright |
+| 1 | Synchronized cohort start & timer sync | `player`, `admin` | Countdown finishes together; timer extends `+30s` per right answer | ✅ Pass via Admin Start + Playwright (`2026-11-17`) | `2026-11-17` | Playwright |
+| 2 | Early admin end & reconnect mid-run | `player`, `admin` | Active players transition to `/result` immediately; refresh preserves server `deadline` | ✅ Pass via Admin End Early & `page.reload()` (`2026-11-17`) | `2026-11-17` | Playwright |
+| 3 | Replay attempt & unauthorized `/admin` access | `player`, Anonymous | Replay blocked to `/result`; admin routes/actions denied | ✅ Pass (`/` & `/play` → `/result`; unauth `/admin/*` → `/admin`, `/api/admin/*` `401`) | `2026-11-17` | Playwright |
+| 4 | UI craft & zero-mono check (`dsd.md` §1.1, §2.4, §7) | `player`, `admin` | Pass on `360px` phone & `1280px` projector | ✅ Pass (`0` mono, `0` blur, `>= 48px`, `tabular-nums`, `0` overflow across all player & admin routes) | `2026-11-17` | Playwright |
 
 ---
 
 ## Self-Check
 
-- [x] Traceability matrix reflects `BOOM-03` (`T-001..T-004`) and `BOOM-04` (`T-003`, `T-005`) passing checks, while `/admin` (`T-006`) stays `Not written`
+- [x] Traceability matrix reflects `BOOM-03` (`T-001..T-004`), `BOOM-04` (`T-003`, `T-005`), and `BOOM-05` (`T-006`) passing checks
 - [x] Project doc check command included in §1

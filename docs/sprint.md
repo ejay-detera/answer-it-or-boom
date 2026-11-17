@@ -67,9 +67,10 @@
 | Field | Value |
 |---|---|
 | Priority | P1 |
-| Status | ⬜ To Do |
-| Authorization / Blockers | Tier 3 (Auth boundary) · Blocker: Confirm `ADR-0002` (`Q1`) |
-| Impacted docs | `security.md`, `api.md`, `flow.md` |
+| Status | ✅ Done |
+| Authorization / Blockers | Tier 3 (Approved) · `ADR-0002` accepted (`2026-11-17`) |
+| Impacted docs | `adr/ADR-0002-admin-passcode-auth.md`, `security.md`, `api.md`, `flow.md`, `test-plan.md`, `foundation.md`, `evidence.md`, `dsd.md` |
+| Completion evidence | `npm test` (`24/24` incl. `admin-auth.test.ts` + `admin-service.test.ts`); Playwright E2E (`verify-boom-05.mjs` against `next start -p 3005` + `zamxjnsxmtsreknsqrwj`, `2026-11-17`): `401` on unauth `/api/admin/*`, redirect on unauth `/admin/*`, wrong-passcode alert, login → kick → lock → start → end early → reset → question CRUD → sign out, `0` mono/blur/`<48px`/overflow/pageErrors; `lint`, `tsc`, `build`, `check-docs.mjs` exit `0` |
 | Traces | `BR-05` · `US-06`, `US-07` · tests `T-006` |
 
 ### BOOM-06 — Sound Toggle, Motion Polish, QA & Vercel Deploy
@@ -92,3 +93,4 @@
 | 2026-11-17 | `BOOM-03` TDD game engine, validation, `API-01..API-03`, & Vitest suite (`17/17` passing) → `✅ Done` | Phase 3 engine & APIs | `BOOM-03` |
 | 2026-11-17 | `BOOM-04` player UI (`/`, `/lobby`, `/play`, `/result`, `/scoreboard`), `BombTimer`, `useSessionRealtime`, & `GET /api/session/me` built (`19/19` Vitest + `build` pass; live browser E2E `T-005` pending) → `🟡 Partial` | Phase 4 player UI | `BOOM-04` |
 | 2026-11-17 | `BOOM-04` verified via Playwright headless E2E (`360x780` & `1280x800`, Realtime, reload reconnect, one-play lock, DOM anti-slop checks) → `✅ Done` | Phase 4 player E2E | `BOOM-04` |
+| 2026-11-17 | `BOOM-05` facilitator auth (`ADR-0002`), `/admin` routes, `/api/admin/*`, Realtime handshake fix, & Playwright E2E (`24/24` Vitest + `T-006`) → `✅ Done` | Phase 4 admin panel | `BOOM-05` |
