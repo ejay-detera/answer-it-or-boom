@@ -41,8 +41,8 @@ flowchart TB
 | Next.js App Router + Tailwind v4 + `Fredoka`/`Nunito` (no mono) + `GAME_CONFIG` | Must | ✅ | `src/app/layout.tsx`, `globals.css`, `src/config/game-config.ts` | `npm run lint`, `tsc --noEmit`, `npm run build` |
 | Starter `/` join card shell | Must | 🟡 (UI shell only; submit disabled) | `src/app/page.tsx` | `npm run build` |
 | Supabase schema, indexes, RLS & 60+ question seed | Must | ✅ | `supabase/migrations/20261117000001_init_schema.sql`, `supabase/seed.sql` | Remote REST RLS & seed check (`2026-11-17`: `60` questions, `1` session, `anon` denied `42501` on `questions`/`player_answers` & writes) |
-| Player join, duplicate/profanity guard & Realtime `/lobby` | Must | ⬜ planned | `⬜` | — |
-| Synchronized 3-2-1 countdown & server-deadline `/play` race | Must | ⬜ planned | `⬜` | — |
+| Player join, duplicate/profanity guard & Realtime `/lobby` | Must | 🟡 (`POST /api/session/join`, `validation.ts` ✅; `/lobby` UI `⬜`) | `src/app/api/session/join/route.ts`, `src/lib/validation.ts` | `npm test` (`T-002`) |
+| Synchronized 3-2-1 countdown & server-deadline `/play` race | Must | 🟡 (`game-rules.ts`, `GET /api/play/question`, `POST /api/play/answer` ✅; `/play` UI `⬜`) | `src/lib/game-rules.ts`, `src/lib/game-service.ts`, `src/app/api/play/**` | `npm test` (`T-001`, `T-004`) |
 | One-play-only lock, `/result`, & `/scoreboard` | Must | ⬜ planned | `⬜` | — |
 | Admin passcode auth, session controls, & question CRUD | Must | ⬜ planned | `⬜` | — |
 | Sound toggle & Framer Motion polish | Should | ⬜ planned | `⬜` | — |

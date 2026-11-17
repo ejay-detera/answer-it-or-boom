@@ -47,9 +47,10 @@
 | Field | Value |
 |---|---|
 | Priority | P1 |
-| Status | ⬜ To Do |
-| Authorization / Blockers | Tier 2 · Blocker: Confirm streak milestone repeatability (`Q2`) |
-| Impacted docs | `api.md`, `test-plan.md`, `flow.md` |
+| Status | ✅ Done |
+| Authorization / Blockers | Tier 2 · `Q2` decided (`one-time per milestone` via `best_streak`); tie-breaker `survival_time DESC` |
+| Impacted docs | `api.md`, `test-plan.md`, `flow.md`, `evidence.md`, `foundation.md`, `security.md` |
+| Completion evidence | `npm test` (`17/17` across `validation.test.ts`, `game-rules.test.ts`, `game-service.test.ts`), `npm run lint`, `npx tsc --noEmit`, `npm run build`, `node scripts/check-docs.mjs --mode=project` (`2026-11-17`, exit `0`) |
 | Traces | `BR-02`, `BR-03` · `US-02`, `US-03`, `US-04` · tests `T-001..T-004` |
 
 ### BOOM-04 — Player UI (`/`, `/lobby`, `/play`, `/result`, `/scoreboard`)
@@ -86,3 +87,4 @@
 | 2026-11-17 | Initial sprint backlog created (`BOOM-01` done for Phase 1 scaffold) | Project bootstrap | All |
 | 2026-11-17 | `BOOM-02` migration (`20261117000001_init_schema.sql`), `seed.sql` (60 questions), & `supabase/config.toml` authored (`🟡`) | Phase 2 DB prep | `BOOM-02` |
 | 2026-11-17 | `BOOM-02` pushed to remote `zamxjnsxmtsreknsqrwj` and verified (`60` seeded questions, `anon` RLS/write denials `42501`) → `✅ Done` | Phase 2 verification | `BOOM-02` |
+| 2026-11-17 | `BOOM-03` TDD game engine, validation, `API-01..API-03`, & Vitest suite (`17/17` passing) → `✅ Done` | Phase 3 engine & APIs | `BOOM-03` |

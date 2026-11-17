@@ -4,13 +4,13 @@
 **Date:** 2026-11-17
 **Version:** 1.0
 **Owner:** Project Owner / Engineering
-**Status:** Active (Planned contracts `⬜` — not yet implemented)
+**Status:** Active (`API-01..API-03` built & contract-tested `✅`; admin `API-04..API-07` & Realtime `⬜`)
 **Source of truth:** [`foundation.md`](foundation.md)
 **Related:** [SDD](sdd.md) · [SAD](sad.md) · [Data model](data-model.md) · [Security](security.md) · [Test plan](test-plan.md) · [Grounding](grounding.md)
 
 ---
 
-> **As-built rule.** Next.js Server Actions / Route Handlers (`src/app/api/**`) and `src/types/game.ts` are the contract authority once built. All operations below are currently **planned (`⬜`)**.
+> **As-built rule.** Route Handlers (`src/app/api/**`), `src/lib/game-service.ts`, and `src/types/game.ts` are the contract authority for `API-01..API-03` (`✅`). Operations `API-04..API-07` remain **planned (`⬜`)**.
 
 ---
 
@@ -25,13 +25,13 @@
 | Concurrency & timer | Server checks `now <= player.deadline`; atomic score/streak/deadline update |
 | Error envelope | `{ "error": { "code": "...", "message": "..." } }` — never leak SQL, stack traces, or `correct_index` |
 
-## 2. Operation Inventory (⬜ Planned)
+## 2. Operation Inventory
 
 | ID | Method / Op | Path | Exposure | Auth & Scope | Purpose | Status | Idempotent | Tests |
 |---|---|---|---|---|---|---|:---:|---|
-| API-01 | `POST` | `/api/session/join` | Public | Open when `waiting` & `!lobby_locked` | Join cadet to active session | ⬜ | No | `T-002` |
-| API-02 | `GET` | `/api/play/question` | Player | Valid `player_id` in `playing` state | Fetch next unseen question (no `correct_index`) + `serverNow` | ⬜ | Yes | `T-004` |
-| API-03 | `POST` | `/api/play/answer` | Player | Valid `player_id` + `now <= deadline` | Validate answer, update score/streak/deadline | ⬜ | Yes (`player_id, question_id`) | `T-001`, `T-004` |
+| API-01 | `POST` | `/api/session/join` | Public | Open when `waiting` & `!lobby_locked` | Join cadet to active session | ✅ | No | `T-002` |
+| API-02 | `GET` | `/api/play/question` | Player | Valid `boom_player_id` cookie in `playing` state | Fetch next unseen question (no `correct_index`) + `serverNow` | ✅ | Yes | `T-004` |
+| API-03 | `POST` | `/api/play/answer` | Player | Valid `boom_player_id` cookie + `now <= deadline` | Validate answer, update score/streak/deadline | ✅ | Yes (`player_id, question_id`) | `T-001`, `T-004` |
 | API-04 | `POST` | `/api/admin/login` | Public | `ADMIN_PASSCODE` check | Set signed `httpOnly` admin cookie | ⬜ | Yes | `T-006` |
 | API-05 | `POST` | `/api/admin/session` | Admin | Admin cookie | Create / Start / Lock / End Early / Reset session | ⬜ | No | `T-006` |
 | API-06 | `DELETE` | `/api/admin/players/[id]` | Admin | Admin cookie | Kick player from lobby | ⬜ | Yes | `T-006` |
@@ -87,6 +87,6 @@ Keep `src/types/game.ts` aligned with route payloads and `supabase/migrations/`.
 
 ## Self-Check
 
-- [x] All operations honestly marked `⬜` (planned)
-- [x] `correct_index` explicitly excluded from client responses
-- [x] Negative test cases defined for auth, replay, duplicate submit, and expiry
+- [x] `API-01..API-03` built & contract-tested; `API-04..API-07` honestly marked `⬜`
+- [x] `correct_index` explicitly excluded from client responses (`PublicQuestion`)
+- [x] Negative test cases verified at service seam for auth, replay, duplicate submit, and expiry
