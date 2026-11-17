@@ -12,7 +12,7 @@
 
 > **Purpose.** Honest status map of what is built (`✅`), partial (`🟡`), or planned (`⬜`). Marks match [`grounding.md`](grounding.md) §3.
 
-**Operating boundary:** Phase 1 scaffold, Phase 2 remote Supabase (`zamxjnsxmtsreknsqrwj`), Phase 3 play APIs, & `BOOM-04` player UI (`/` `/lobby` `/play` `/result` `/scoreboard`) built & E2E-verified (`2026-11-17`). Not deployed to Vercel; admin routes (`/admin/**`) pending `BOOM-05`.
+**Operating boundary:** Phase 1–4 + `BOOM-05` (`/`, `/lobby`, `/play`, `/result`, `/scoreboard`, `/admin`, `/admin/dashboard`, `/admin/questions`) built & E2E-verified locally against remote Supabase `zamxjnsxmtsreknsqrwj` (`2026-11-17`). Not deployed to Vercel; `BOOM-06` sound/motion polish & deploy pending.
 
 ---
 
@@ -29,9 +29,9 @@ flowchart TB
   P --> R3["✅ /play Bomb & Questions"]
   P --> R4["✅ /result BOOM Screen"]
   P --> R5["✅ /scoreboard Live Projector"]
-  A --> A1["⬜ /admin Login"]
-  A --> A2["⬜ /admin/dashboard Controls"]
-  A --> A3["⬜ /admin/questions CRUD"]
+  A --> A1["✅ /admin Login"]
+  A --> A2["✅ /admin/dashboard Controls"]
+  A --> A3["✅ /admin/questions CRUD"]
 ```
 
 ## 2. Feature Scope Matrix
@@ -44,7 +44,7 @@ flowchart TB
 | Player join, duplicate/profanity guard & Realtime `/lobby` | Must | ✅ | `src/app/lobby/page.tsx`, `src/components/lobby-view.tsx` | `npm test` (`T-002`, `T-003`), Playwright E2E (`2026-11-17`) |
 | Synchronized 3-2-1 countdown & server-deadline `/play` race | Must | ✅ | `src/app/play/page.tsx`, `src/components/play-view.tsx`, `src/components/bomb-timer.tsx` | `npm test` (`T-001`, `T-004`), Playwright E2E (`2026-11-17`) |
 | One-play-only lock, `/result`, & `/scoreboard` | Must | ✅ | `src/app/result/page.tsx`, `src/app/scoreboard/page.tsx` | `npm test` (`T-003`), Playwright E2E `T-005` (`2026-11-17`) |
-| Admin passcode auth, session controls, & question CRUD | Must | ⬜ planned | `⬜` | — |
+| Admin passcode auth, session controls, & question CRUD | Must | ✅ | `src/lib/admin-auth.ts`, `src/lib/admin-service.ts`, `src/app/admin/**`, `src/app/api/admin/**` | `npm test` (`T-006`), Playwright E2E (`2026-11-17`) |
 | Sound toggle & Framer Motion polish | Should | ⬜ planned | `⬜` | — |
 
 ## 3. Verification Commands

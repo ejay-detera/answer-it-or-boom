@@ -48,7 +48,7 @@ Architecture & surfaces: **Next.js (App Router, TypeScript)** client & Server Ac
 | System context | Internal onboarding tool: software developer cadet orientation | `S-01` |
 | Primary actors / operators | **Player (Cadet)** and **Admin (Facilitator)** | `S-01` |
 | Explicit non-goals | No player accounts/passwords, multi-room codes, PvP chat, typed answers, AI questions, replays, native mobile app, or offline play | `S-01` ([`prd.md`](prd.md) §6) |
-| Implementation status | Phase 1 scaffold, Phase 2 Supabase (`zamxjnsxmtsreknsqrwj`), Phase 3 play APIs, & `BOOM-04` player UI built & E2E-verified (`2026-11-17`); `/admin` routes `⬜` | [`flow.md`](flow.md) |
+| Implementation status | Phase 1–4 + `BOOM-05` (`/`, `/lobby`, `/play`, `/result`, `/scoreboard`, `/admin/**`) built & E2E-verified (`2026-11-17`); `BOOM-06` polish & Vercel deploy `⬜` | [`flow.md`](flow.md) |
 
 ### Architecture summary in one paragraph
 
@@ -69,7 +69,7 @@ Next.js App Router serves responsive player routes (`/`, `/lobby`, `/play`, `/re
 | Player join, lobby, synchronized start, and one-play enforcement | Yes | ✅ (built & verified via `npm test` + Playwright E2E `2026-11-17`) |
 | Server-authoritative timer, scoring, streak bonus, & no-repeat questions | Yes | ✅ (built & verified via `npm test` + Playwright E2E `2026-11-17`) |
 | Live projector `/scoreboard` via Supabase Realtime | Yes | ✅ (built & verified via Playwright E2E `2026-11-17`) |
-| Admin passcode login, session controls, & question CRUD | Yes | ⬜ |
+| Admin passcode login, session controls, & question CRUD | Yes | ✅ (built & verified via `npm test` + Playwright E2E `2026-11-17`) |
 
 ### Team / maintainers
 
@@ -248,7 +248,7 @@ Canonical stack & trade-offs live in [`sad.md`](sad.md) §2; resolved lockfile p
 
 | # | Decision area | Current posture | Why it must be resolved |
 |---:|---|---|---|
-| Q1 | Admin auth mechanism | `ADMIN_PASSCODE` signed `httpOnly` cookie proposed ([`ADR-0002`](adr/ADR-0002-admin-passcode-auth.md)) | Needed before implementing `/admin` routes |
+| Q1 | Admin auth mechanism | Accepted: `ADMIN_PASSCODE` HMAC-signed `httpOnly` cookie ([`ADR-0002`](adr/ADR-0002-admin-passcode-auth.md)) | Implemented in `src/lib/admin-auth.ts` |
 | Q2 | Streak bonus repeatability | Decided: one-time per milestone (`3`, `5`, `10`) per run (`src/lib/game-rules.ts`) | Resolved for Phase 3 TDD (`A-03`) |
 | Q3 | Profanity filter scope | Starter normalized blocklist implemented in `src/lib/validation.ts` | Expandable list in `validation.ts` |
 | Q4 | Deployment targets & Supabase project | Remote Supabase `zamxjnsxmtsreknsqrwj` provisioned, pushed & verified (`2026-11-17`); Vercel domain `TBD` | Vercel target needed before Phase 5 deploy |
@@ -257,7 +257,7 @@ Canonical stack & trade-offs live in [`sad.md`](sad.md) §2; resolved lockfile p
 
 | # | Status | ADR | Decided on |
 |---:|---|---|---|
-| Q1 | Proposed | [`ADR-0002`](adr/ADR-0002-admin-passcode-auth.md) | 2026-11-17 |
+| Q1 | Accepted | [`ADR-0002`](adr/ADR-0002-admin-passcode-auth.md) | 2026-11-17 |
 | Q2 | Decided (one-time per milestone) | `A-03` | 2026-11-17 |
 | Q3 | Decided (starter list) | — | 2026-11-17 |
 | Q4 | Open | — | — |

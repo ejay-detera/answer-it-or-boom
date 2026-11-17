@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Proposed (awaiting user confirmation) |
+| Status | Accepted (`2026-11-17`) |
 | Date | 2026-11-17 |
 | Deciders | Project Owner |
 | Answers | `foundation.md` §14 Q1 |

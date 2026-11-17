@@ -4,13 +4,13 @@
 **Date:** 2026-11-17
 **Version:** 1.0
 **Owner:** Project Owner / Engineering
-**Status:** Active (`API-01..API-03` built & contract-tested `✅`; admin `API-04..API-07` & Realtime `⬜`)
+**Status:** Active (`API-01..API-07` built & verified `✅`)
 **Source of truth:** [`foundation.md`](foundation.md)
 **Related:** [SDD](sdd.md) · [SAD](sad.md) · [Data model](data-model.md) · [Security](security.md) · [Test plan](test-plan.md) · [Grounding](grounding.md)
 
 ---
 
-> **As-built rule.** Route Handlers (`src/app/api/**`), `src/lib/game-service.ts`, and `src/types/game.ts` are the contract authority for `API-01..API-03` (`✅`). Operations `API-04..API-07` remain **planned (`⬜`)**.
+> **As-built rule.** Route Handlers (`src/app/api/**`), `src/lib/game-service.ts`, `src/lib/admin-service.ts`, and `src/types/game.ts` are the contract authority (`✅`).
 
 ---
 
@@ -33,10 +33,10 @@
 | API-01b | `GET` | `/api/session/me` | Public / Player | Reads `boom_player_id` cookie (`null` if missing/kicked) | Restore player & session state + `serverNow` | ✅ | Yes | `T-003` |
 | API-02 | `GET` | `/api/play/question` | Player | Valid `boom_player_id` cookie in `playing` state | Fetch next unseen question (no `correct_index`) + `serverNow` | ✅ | Yes | `T-004` |
 | API-03 | `POST` | `/api/play/answer` | Player | Valid `boom_player_id` cookie + `now <= deadline` | Validate answer, update score/streak/deadline | ✅ | Yes (`player_id, question_id`) | `T-001`, `T-004` |
-| API-04 | `POST` | `/api/admin/login` | Public | `ADMIN_PASSCODE` check | Set signed `httpOnly` admin cookie | ⬜ | Yes | `T-006` |
-| API-05 | `POST` | `/api/admin/session` | Admin | Admin cookie | Create / Start / Lock / End Early / Reset session | ⬜ | No | `T-006` |
-| API-06 | `DELETE` | `/api/admin/players/[id]` | Admin | Admin cookie | Kick player from lobby | ⬜ | Yes | `T-006` |
-| API-07 | `POST`/`PATCH`/`DELETE` | `/api/admin/questions` | Admin | Admin cookie | Question pool CRUD | ⬜ | No | `T-006` |
+| API-04 | `POST`/`DELETE` | `/api/admin/login` | Public | `ADMIN_PASSCODE` check | Set/clear HMAC-signed `httpOnly` `boom_admin_token` cookie | ✅ | Yes | `T-006` |
+| API-05 | `POST` | `/api/admin/session` | Admin | `boom_admin_token` cookie | Start / Lock / Unlock / End Early / Reset session | ✅ | No | `T-006` |
+| API-06 | `DELETE` | `/api/admin/players/[id]` | Admin | `boom_admin_token` cookie | Kick player from lobby | ✅ | Yes | `T-006` |
+| API-07 | `GET`/`POST`/`PATCH`/`DELETE` | `/api/admin/questions` | Admin | `boom_admin_token` cookie | Question pool CRUD | ✅ | No | `T-006` |
 
 ## 3. Reference Operation (`API-03 — Submit Answer`)
 
@@ -73,8 +73,8 @@
 
 | Channel / Table | Subscribers | Events | Payload scope | Status |
 |---|---|---|---|---|
-| `sessions` | `/lobby`, `/play`, `/result`, `/scoreboard` (admin `⬜`) | `UPDATE` | `status`, `lobby_locked`, `started_at` | ✅ (player routes verified via Playwright E2E `2026-11-17`) |
-| `players` | `/lobby`, `/result`, `/scoreboard` (admin `⬜`) | `INSERT`, `UPDATE`, `DELETE` | Public leaderboard/lobby fields only | ✅ (player routes verified via Playwright E2E `2026-11-17`) |
+| `sessions` | `/lobby`, `/play`, `/result`, `/scoreboard`, `/admin/dashboard` | `UPDATE` | `status`, `lobby_locked`, `started_at` | ✅ (verified via Playwright E2E `2026-11-17`) |
+| `players` | `/lobby`, `/result`, `/scoreboard`, `/admin/dashboard` | `INSERT`, `UPDATE`, `DELETE` | Public leaderboard/lobby fields only | ✅ (verified via Playwright E2E `2026-11-17`) |
 
 ## 6. External APIs Consumed
 
@@ -88,6 +88,6 @@ Keep `src/types/game.ts` aligned with route payloads and `supabase/migrations/`.
 
 ## Self-Check
 
-- [x] `API-01..API-03` built & contract-tested; `API-04..API-07` honestly marked `⬜`
+- [x] `API-01..API-07` built & verified via Vitest + Playwright E2E (`2026-11-17`)
 - [x] `correct_index` explicitly excluded from client responses (`PublicQuestion`)
 - [x] Negative test cases verified at service seam for auth, replay, duplicate submit, and expiry

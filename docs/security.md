@@ -45,28 +45,28 @@
 
 | Threat ID | Threat | Asset | Boundary | L / I | Control ID & requirement | Enforcement location | Owner | Status | Verified |
 |---|---|---|---|---|---|---|---|---|---|
-| TH-01 | Tampering: Player inspects browser network/DB to read answer key | `questions.correct_index` | Browser → DB / API | H / M | `SEC-01`: RLS denies `anon` on `questions`; API strips `correct_index` | Supabase RLS + `/api/play/*` | Engineering | ⬜ | `T-004` |
-| TH-02 | Tampering: Player spoofs local clock to extend bomb timer | `players.deadline` | Browser → API | M / M | `SEC-02`: Server computes `deadline` and rejects `now > deadline` | `/api/play/answer` | Engineering | ⬜ | `T-001` |
-| TH-03 | Elevation: Unauthorized user calls admin start/reset/kick/question CRUD | Session & question pool | Browser → `/api/admin/*` | M / H | `SEC-03`: Signed `httpOnly` cookie from `ADMIN_PASSCODE` checked on every admin route/action | `middleware.ts` + admin handlers | Engineering | ⬜ | `T-006` |
-| TH-04 | Abuse: Replay / duplicate submission for same question | Score & fuse time | Browser → `/api/play/answer` | M / M | `SEC-04`: `UNIQUE (player_id, question_id)` + terminal status lock | Postgres constraint + API | Engineering | ⬜ | `T-003`, `T-004` |
-| TH-05 | Info disclosure: Secret leaked in `NEXT_PUBLIC_*` or repo | Service role key / passcode | Build / Repo | L / H | `SEC-05`: Only `NEXT_PUBLIC_SUPABASE_URL` & `ANON_KEY` public; `.env.local` gitignored | `.env.example`, `.gitignore` | Engineering | 🟡 | `.gitignore` checked |
+| TH-01 | Tampering: Player inspects browser network/DB to read answer key | `questions.correct_index` | Browser → DB / API | H / M | `SEC-01`: RLS denies `anon` on `questions`; API strips `correct_index` | Supabase RLS + `/api/play/*` | Engineering | ✅ | `T-004` (`2026-11-17`) |
+| TH-02 | Tampering: Player spoofs local clock to extend bomb timer | `players.deadline` | Browser → API | M / M | `SEC-02`: Server computes `deadline` and rejects `now > deadline` | `/api/play/answer` | Engineering | ✅ | `T-001` (`2026-11-17`) |
+| TH-03 | Elevation: Unauthorized user calls admin start/reset/kick/question CRUD | Session & question pool | Browser → `/api/admin/*` | M / H | `SEC-03`: Signed `httpOnly` cookie from `ADMIN_PASSCODE` checked on every admin route/action | `AdminGate` + `requireAdmin()` in `/api/admin/*` | Engineering | ✅ | `T-006` (`2026-11-17`) |
+| TH-04 | Abuse: Replay / duplicate submission for same question | Score & fuse time | Browser → `/api/play/answer` | M / M | `SEC-04`: `UNIQUE (player_id, question_id)` + terminal status lock | Postgres constraint + API | Engineering | ✅ | `T-003`, `T-004` (`2026-11-17`) |
+| TH-05 | Info disclosure: Secret leaked in `NEXT_PUBLIC_*` or repo | Service role key / passcode | Build / Repo | L / H | `SEC-05`: Only `NEXT_PUBLIC_SUPABASE_URL` & `ANON_KEY` public; `.env.local` gitignored | `.env.example`, `.gitignore` | Engineering | ✅ | `.gitignore` checked |
 
 ## 5. Authentication and Authorization
 
 | Topic | Decision | Status |
 |---|---|---|
-| Player identification | Unique `player_id` cookie/`localStorage` per join (no passwords) | ⬜ |
-| Admin auth | Single `ADMIN_PASSCODE` verified server-side → signed `httpOnly`, `SameSite=Lax` cookie (`ADR-0002`) | ⬜ |
+| Player identification | Unique `httpOnly` `boom_player_id` cookie per join (no passwords) | ✅ |
+| Admin auth | Single `ADMIN_PASSCODE` verified server-side → HMAC-SHA256 signed `httpOnly`, `SameSite=Lax` cookie (`ADR-0002`) | ✅ |
 
 **Permission matrix.**
 
 | Action / resource | `player` | `admin` | Anonymous | Scope | Enforced at | Verified by |
 |---|:---:|:---:|:---:|---|---|---|
-| Join waiting unlocked session | — | Allow | Allow | Unique trimmed name `2..20` | `/api/session/join` | `T-002` (⬜) |
-| Read `sessions` / `players` (Realtime) | Allow | Allow | Allow | Public lobby/leaderboard columns | Supabase RLS | `T-005` (⬜) |
-| Read `questions.correct_index` | **Deny** | Allow (`/admin`) | **Deny** | Server `service_role` only for `/api/play/*` | Supabase RLS | `T-004` (⬜) |
-| Submit answer | Conditional | — | **Deny** | Own `player_id`, `playing`, `now <= deadline` | `/api/play/answer` | `T-001`, `T-004` (⬜) |
-| Start / Lock / End / Reset / Kick / Questions | **Deny** | Allow | **Deny** | Signed admin cookie | Middleware + `/api/admin/*` | `T-006` (⬜) |
+| Join waiting unlocked session | — | Allow | Allow | Unique trimmed name `2..20` | `/api/session/join` | `T-002` (✅) |
+| Read `sessions` / `players` (Realtime) | Allow | Allow | Allow | Public lobby/leaderboard columns | Supabase RLS | `T-005` (✅) |
+| Read `questions.correct_index` | **Deny** | Allow (`/admin`) | **Deny** | Server `service_role` only for `/api/play/*` | Supabase RLS | `T-004` (✅) |
+| Submit answer | Conditional | — | **Deny** | Own `player_id`, `playing`, `now <= deadline` | `/api/play/answer` | `T-001`, `T-004` (✅) |
+| Start / Lock / End / Reset / Kick / Questions | **Deny** | Allow | **Deny** | Signed `boom_admin_token` cookie | `AdminGate` + `/api/admin/*` | `T-006` (✅) |
 
 ## 6. Secrets
 
@@ -76,7 +76,7 @@
 ## 7. Data Protection, Input Validation, Supply Chain
 
 - Lockfile `package-lock.json` committed (`✅`), `npm audit` reported `0` vulnerabilities during Phase 1 install (`✅` `2026-11-17`).
-- Player names trimmed, length-bounded (`2–20`), profanity-filtered (`⬜`), and rendered through React JSX escaping (no `dangerouslySetInnerHTML`).
+- Player names trimmed, length-bounded (`2–20`), profanity-filtered (`✅` in `src/lib/validation.ts`), and rendered through React JSX escaping (no `dangerouslySetInnerHTML`).
 
 ## 8. Optional Modules
 
@@ -87,12 +87,12 @@ All optional modules inactive (`foundation.md` §0).
 | Review | Status | Env / Rev | Date | Reviewer | Notes |
 |---|---|---|---|---|---|
 | Dependency install audit | 🟡 Dev-only findings (`0` prod vulns) | `local` | `2026-11-17` | `npm audit --omit=dev` | `@supabase/supabase-js` (`0` prod vulns); `vitest@3.2.4` dev tooling flags `3` transitive dev findings (`1` mod, `2` crit) |
-| Threat model & RLS review | 🟡 Partial (DB RLS verified; API pending) | `zamxjnsxmtsreknsqrwj` | `2026-11-17` | Engineering | `anon` denied (`401`/`42501`) on `questions`, `player_answers`, and writes; API strip test (`T-004`) pending Phase 3 |
-| Authorization & negative tests | ⬜ Outstanding | — | — | — | Required after Phase 3 TDD |
+| Threat model & RLS review | ✅ Verified (DB RLS + play API) | `zamxjnsxmtsreknsqrwj` | `2026-11-17` | Engineering | `anon` denied (`401`/`42501`) on `questions`, `player_answers`, and writes; `correct_index` absence verified (`T-004` + Playwright E2E) |
+| Authorization & negative tests | ✅ Pass (`T-001..T-006`) | `local` | `2026-11-17` | Vitest + Playwright | `24/24` Vitest + Playwright unauth `/api/admin/*` (`401`), `/admin/*` redirect, replay block, & expired deadline |
 
 ## 10. Open Security Decisions
 
-- Confirm `ADMIN_PASSCODE` (`ADR-0002`) vs Supabase Auth (`foundation.md` §14 `Q1`).
+- None (`ADR-0002` accepted `2026-11-17`).
 
 ---
 
@@ -100,4 +100,4 @@ All optional modules inactive (`foundation.md` §0).
 
 - [x] Permission matrix uses `Allow`/`Deny`/`Conditional` (never `✅`)
 - [x] Zero secret values in repository docs or `.env.example`
-- [x] Planned controls honestly marked `⬜`
+- [x] Threat controls reflect verified Vitest + Playwright + RLS runs (`2026-11-17`)

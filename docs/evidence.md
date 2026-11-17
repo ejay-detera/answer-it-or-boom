@@ -52,7 +52,7 @@ Scope this ledger to **empirical, business, comparative, regulatory, and perform
 | ID | Assumption | Why assumed | Risk if wrong | Validate by | Owner | Affected dependents | Status |
 |---|---|---|---|---|---|---|---|
 | A-01 | Single active session at a time (no room codes in MVP) | Stated in `S-01` §6 | Concurrent cohorts would collide | Before multi-cohort pilot | Project Owner | `foundation.md`, `data-model.md`, `api.md` | Open |
-| A-02 | `ADMIN_PASSCODE` signed `httpOnly` cookie is preferred over Supabase Auth user accounts | Single facilitator account in `S-01` §4.2, §7 | Requires passcode rotation between events | Before Phase 3 admin build | Project Owner | `security.md`, `ADR-0002` | Open |
+| A-02 | `ADMIN_PASSCODE` signed `httpOnly` cookie is preferred over Supabase Auth user accounts | Single facilitator account in `S-01` §4.2, §7 | Requires passcode rotation between events | Validated in `admin-auth.ts` + `T-006` | Project Owner | `security.md`, `ADR-0002` | Decided (`2026-11-17`) |
 | A-03 | Streak bonuses (`+5`, `+10`, `+20` at `3`, `5`, `10`) trigger at most once per milestone per run | Stated in `S-01` §3 ("one-time bonus at each milestone") | Scoring rules change if repeatable | Validated in `game-rules.ts` (`bestStreak < milestone`) | Project Owner | `src/config/game-config.ts`, `src/lib/game-rules.ts`, `test-plan.md` | Decided (`2026-11-17`) |
 
 ---
