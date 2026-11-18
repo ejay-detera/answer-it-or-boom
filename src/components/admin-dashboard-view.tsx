@@ -162,10 +162,19 @@ export function AdminDashboardView() {
               {busyAction === "end" ? "Ending..." : "End Game Early"}
             </button>
 
-            {!confirmReset ? (
+            {!session ? (
               <button
                 type="button"
-                disabled={!session || busyAction !== null}
+                disabled={busyAction !== null}
+                onClick={() => void triggerSessionAction("reset")}
+                className="min-h-12 rounded-2xl bg-accent-orange text-bg-primary font-display font-bold px-6 transition-transform active:scale-[0.99] hover:brightness-105 disabled:opacity-50 cursor-pointer"
+              >
+                {busyAction === "reset" ? "Creating..." : "Create New Session"}
+              </button>
+            ) : !confirmReset ? (
+              <button
+                type="button"
+                disabled={busyAction !== null}
                 onClick={() => setConfirmReset(true)}
                 className="min-h-12 rounded-2xl bg-surface-elevated border border-border-ash text-accent-yellow font-display font-bold px-5 hover:border-accent-yellow disabled:opacity-50 cursor-pointer"
               >

@@ -37,6 +37,10 @@ function makeInMemoryAdminRepo(seed?: {
     async getLatestSession() {
       return state.session;
     },
+    async createWaitingSession() {
+      state.session = { ...baseSession, id: "sess-created" };
+      return state.session;
+    },
     async listPlayersBySession(sessionId) {
       return state.players.filter((p) => p.session_id === sessionId);
     },
@@ -193,6 +197,14 @@ describe("admin-service session controls (T-006 / API-05, API-06)", () => {
       status: 404,
       error: { code: "INVALID_INPUT" },
     });
+  });
+
+  it("creates a fresh waiting session on reset when the sessions table is empty", async () => {
+    const emptyNoSession = makeInMemoryAdminRepo({ session: null });
+    const created = await runAdminSessionAction(emptyNoSession, "reset");
+    expect(created.ok).toBe(true);
+    expect(emptyNoSession.session?.status).toBe("waiting");
+    expect(emptyNoSession.session?.id).toBe("sess-created");
   });
 });
 

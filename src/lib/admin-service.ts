@@ -22,6 +22,7 @@ export interface QuestionCreateInput {
 
 export interface AdminRepository {
   getLatestSession(): Promise<SessionRow | null>;
+  createWaitingSession(): Promise<SessionRow>;
   listPlayersBySession(sessionId: string): Promise<PlayerRow[]>;
   startSession(
     sessionId: string,
@@ -60,6 +61,13 @@ export async function runAdminSessionAction(
 ): Promise<ServiceResult<SessionRow>> {
   const session = await repo.getLatestSession();
   if (!session) {
+    if (action === "reset") {
+      return {
+        ok: true,
+        status: 200,
+        data: await repo.createWaitingSession(),
+      };
+    }
     return fail(404, "NO_SESSION", "No session exists.");
   }
 

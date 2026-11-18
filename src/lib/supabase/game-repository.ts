@@ -1,3 +1,4 @@
+import { GAME_CONFIG } from "@/config/game-config";
 import type { AdminRepository, QuestionCreateInput } from "@/lib/admin-service";
 import type { GameRepository, PlayerProgressPatch } from "@/lib/game-service";
 import { createServiceClient } from "@/lib/supabase/server";
@@ -134,6 +135,23 @@ export function createSupabaseAdminRepository(): AdminRepository {
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle<SessionRow>();
+      if (error) throw error;
+      return data;
+    },
+
+    async createWaitingSession() {
+      const { data, error } = await db
+        .from("sessions")
+        .insert({
+          status: "waiting",
+          base_time_seconds: GAME_CONFIG.baseTimeSeconds,
+          bonus_time_seconds: GAME_CONFIG.bonusTimeSeconds,
+          points_per_correct: GAME_CONFIG.pointsPerCorrect,
+          wrong_answer_penalty_seconds: GAME_CONFIG.wrongAnswerPenaltySeconds,
+          lobby_locked: false,
+        })
+        .select("*")
+        .single<SessionRow>();
       if (error) throw error;
       return data;
     },
