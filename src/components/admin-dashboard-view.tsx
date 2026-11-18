@@ -93,29 +93,23 @@ export function AdminDashboardView() {
       bannerTone="orange"
       maxWidthClass="max-w-5xl"
       rightSlot={
-        <nav className="flex flex-wrap items-center gap-2.5">
-          {session ? <StatusBadge status={session.status} /> : null}
-          {session?.lobby_locked ? (
-            <ComicSticker tone="yellow" tilt="left">
-              LOCKED
-            </ComicSticker>
-          ) : null}
+        <nav className="flex flex-wrap items-center lg:justify-end gap-2.5">
           <Link
             href="/admin/questions"
-            className="min-h-12 rounded-2xl bg-surface-elevated border border-border-ash px-4 inline-flex items-center justify-center text-sm font-bold text-text-primary hover:border-accent-orange"
+            className="min-h-12 rounded-2xl bg-surface-elevated border border-border-ash px-4 inline-flex items-center justify-center text-sm font-bold text-text-primary whitespace-nowrap hover:border-accent-orange"
           >
             Manage Questions
           </Link>
           <Link
             href="/scoreboard"
-            className="min-h-12 rounded-2xl bg-surface-elevated border border-border-ash px-4 inline-flex items-center justify-center text-sm font-bold text-info-blue hover:border-info-blue"
+            className="min-h-12 rounded-2xl bg-surface-elevated border border-border-ash px-4 inline-flex items-center justify-center text-sm font-bold text-info-blue whitespace-nowrap hover:border-info-blue"
           >
             Projector Scoreboard
           </Link>
           <button
             type="button"
             onClick={() => void handleSignOut()}
-            className="min-h-12 rounded-2xl bg-bg-primary border border-border-ash px-4 text-sm font-bold text-text-muted hover:text-text-primary cursor-pointer"
+            className="min-h-12 rounded-2xl bg-bg-primary border border-border-ash px-4 text-sm font-bold text-text-muted whitespace-nowrap hover:text-text-primary cursor-pointer"
           >
             Sign Out
           </button>
@@ -124,7 +118,17 @@ export function AdminDashboardView() {
     >
       <div className="space-y-6">
         <div className="rounded-2xl bg-bg-primary border-2 border-border-ash p-5 space-y-4">
-          <h2 className="text-xl font-bold text-text-primary">Session Controls</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl font-bold text-text-primary">Session Controls</h2>
+            <div className="flex flex-wrap items-center gap-3">
+              {session ? <StatusBadge status={session.status} /> : null}
+              {session?.lobby_locked ? (
+                <ComicSticker tone="yellow" tilt="right">
+                  LOCKED
+                </ComicSticker>
+              ) : null}
+            </div>
+          </div>
 
           {actionError || error ? (
             <p role="alert" className="text-sm font-semibold text-danger-red">
@@ -132,12 +136,12 @@ export function AdminDashboardView() {
             </p>
           ) : null}
 
-          <div className="flex flex-wrap gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <button
               type="button"
               disabled={!canStart || busyAction !== null}
               onClick={() => void triggerSessionAction("start")}
-              className="min-h-12 rounded-2xl bg-accent-orange text-bg-primary font-display font-bold px-6 transition-transform active:scale-[0.99] hover:brightness-105 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="min-h-12 w-full rounded-2xl bg-accent-orange text-bg-primary font-display font-bold px-5 transition-transform active:scale-[0.99] hover:brightness-105 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {busyAction === "start" ? "Starting..." : "Start Game"}
             </button>
@@ -148,7 +152,7 @@ export function AdminDashboardView() {
               onClick={() =>
                 void triggerSessionAction(session?.lobby_locked ? "unlock" : "lock")
               }
-              className="min-h-12 rounded-2xl bg-surface-elevated border border-border-ash text-text-primary font-display font-bold px-5 hover:border-accent-yellow disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="min-h-12 w-full rounded-2xl bg-surface-elevated border border-border-ash text-text-primary font-display font-bold px-5 hover:border-accent-yellow disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {session?.lobby_locked ? "Unlock Lobby" : "Lock Lobby"}
             </button>
@@ -157,7 +161,7 @@ export function AdminDashboardView() {
               type="button"
               disabled={!isLive || busyAction !== null}
               onClick={() => void triggerSessionAction("end")}
-              className="min-h-12 rounded-2xl bg-danger-red text-bg-primary font-display font-bold px-5 transition-transform active:scale-[0.99] hover:brightness-105 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="min-h-12 w-full rounded-2xl bg-danger-red text-bg-primary font-display font-bold px-5 transition-transform active:scale-[0.99] hover:brightness-105 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {busyAction === "end" ? "Ending..." : "End Game Early"}
             </button>
@@ -167,7 +171,7 @@ export function AdminDashboardView() {
                 type="button"
                 disabled={busyAction !== null}
                 onClick={() => void triggerSessionAction("reset")}
-                className="min-h-12 rounded-2xl bg-accent-orange text-bg-primary font-display font-bold px-6 transition-transform active:scale-[0.99] hover:brightness-105 disabled:opacity-50 cursor-pointer"
+                className="min-h-12 w-full rounded-2xl bg-accent-orange text-bg-primary font-display font-bold px-5 transition-transform active:scale-[0.99] hover:brightness-105 disabled:opacity-50 cursor-pointer"
               >
                 {busyAction === "reset" ? "Creating..." : "Create New Session"}
               </button>
@@ -176,27 +180,25 @@ export function AdminDashboardView() {
                 type="button"
                 disabled={busyAction !== null}
                 onClick={() => setConfirmReset(true)}
-                className="min-h-12 rounded-2xl bg-surface-elevated border border-border-ash text-accent-yellow font-display font-bold px-5 hover:border-accent-yellow disabled:opacity-50 cursor-pointer"
+                className="min-h-12 w-full rounded-2xl bg-surface-elevated border border-border-ash text-accent-yellow font-display font-bold px-5 hover:border-accent-yellow disabled:opacity-50 cursor-pointer"
               >
                 Reset Session
               </button>
             ) : (
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 sm:col-span-2 lg:col-span-1">
                 <button
                   type="button"
                   disabled={busyAction !== null}
                   onClick={() => void triggerSessionAction("reset")}
-                  className="min-h-12 rounded-2xl bg-danger-red text-bg-primary font-display font-bold px-5 cursor-pointer"
+                  className="min-h-12 flex-1 rounded-2xl bg-danger-red text-bg-primary font-display font-bold px-4 text-sm cursor-pointer"
                 >
-                  {busyAction === "reset"
-                    ? "Resetting..."
-                    : "Confirm Reset (Clears Players)"}
+                  {busyAction === "reset" ? "Resetting..." : "Confirm Reset"}
                 </button>
                 <button
                   type="button"
                   disabled={busyAction !== null}
                   onClick={() => setConfirmReset(false)}
-                  className="min-h-12 rounded-2xl bg-surface-elevated border border-border-ash text-text-muted font-bold px-4 cursor-pointer"
+                  className="min-h-12 rounded-2xl bg-surface-elevated border border-border-ash text-text-muted font-bold px-4 text-sm cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -217,7 +219,7 @@ export function AdminDashboardView() {
             <p className="text-sm text-text-muted">Loading players...</p>
           ) : ranked.length === 0 ? (
             <p className="text-sm text-text-muted">
-              No cadets have joined yet. Share the player URL so cadets can enter on `/`.
+              No cadets have joined yet. Share the player join page (/) so cadets can enter.
             </p>
           ) : (
             <ul className="space-y-2.5">

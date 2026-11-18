@@ -190,8 +190,8 @@ export function ComicStageFrame({
         }}
         className={`relative z-10 w-full ${maxWidthClass} rounded-3xl bg-surface border-2 border-border-ash p-5 sm:p-8 comic-panel-shadow`}
       >
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
+        <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3 shrink-0">
             <motion.h1
               initial={prefersReducedMotion ? false : { rotate: -4, scale: 0.96 }}
               animate={prefersReducedMotion ? false : { rotate: -2, scale: 1 }}
@@ -199,15 +199,17 @@ export function ComicStageFrame({
                 duration: prefersReducedMotion ? 0.01 : 0.28,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className={`-rotate-2 inline-flex items-center gap-2.5 rounded-2xl bg-bg-primary border-2 px-4 sm:px-5 py-2 font-display font-bold text-2xl sm:text-3xl uppercase tracking-tight comic-ribbon-shadow ${BANNER_ACCENT[bannerTone]}`}
+              className={`-rotate-2 inline-flex items-center gap-2.5 rounded-2xl bg-bg-primary border-2 px-4 sm:px-5 py-2 font-display font-bold text-xl sm:text-2xl uppercase tracking-tight sm:whitespace-nowrap comic-ribbon-shadow ${BANNER_ACCENT[bannerTone]}`}
             >
-              <BombMark size={30} />
+              <BombMark size={28} />
               <span>{bannerTitle}</span>
             </motion.h1>
           </div>
 
           {rightSlot ? (
-            <div className="flex flex-wrap items-center gap-2.5">{rightSlot}</div>
+            <div className="flex flex-wrap items-center lg:justify-end gap-2.5">
+              {rightSlot}
+            </div>
           ) : null}
         </header>
 
