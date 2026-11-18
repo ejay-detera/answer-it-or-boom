@@ -234,6 +234,7 @@ describe("getNextQuestion (T-003, T-004 / API-02)", () => {
     expect(res.ok).toBe(true);
     if (!res.ok || res.data.status !== "playing") throw new Error("Expected playing question");
     expect(res.data.question.id).toBe("q-2");
+    expect(res.data.upcomingQuestions).toEqual([]);
     expect("correct_index" in res.data.question).toBe(false);
     expect(res.data.answeredCount).toBe(1);
     expect(res.data.serverNow).toBe("2026-11-17T12:01:00.000Z");
@@ -337,6 +338,7 @@ describe("submitAnswer (T-001, T-003, T-004 / API-03)", () => {
         newStreak: 1,
         bestStreak: 1,
         streakBonusAwarded: 0,
+        bonusTimeSecondsApplied: 30,
         penaltySecondsApplied: 0,
         consecutiveWrongCount: 0,
         newDeadline: "2026-11-17T12:03:00.000Z",
@@ -370,6 +372,7 @@ describe("submitAnswer (T-001, T-003, T-004 / API-03)", () => {
         newStreak: 1,
         bestStreak: 1,
         streakBonusAwarded: 0,
+        bonusTimeSecondsApplied: 0,
         penaltySecondsApplied: 0,
         consecutiveWrongCount: 0,
         newDeadline: "2026-11-17T12:03:00.000Z",

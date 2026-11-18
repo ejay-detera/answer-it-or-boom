@@ -1,6 +1,6 @@
 export const GAME_CONFIG = {
-  baseTimeSeconds: 120,
-  bonusTimeSeconds: 30,
+  baseTimeSeconds: 60,
+  bonusTimeSeconds: 10,
   pointsPerCorrect: 10,
   wrongAnswerPenaltySeconds: 10,
   countdownSeconds: 3,

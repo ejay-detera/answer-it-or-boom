@@ -34,6 +34,7 @@ describe("evaluateAnswer (T-001)", () => {
       newStreak: 1,
       bestStreak: 1,
       streakBonusAwarded: 0,
+      bonusTimeSecondsApplied: 30,
       penaltySecondsApplied: 0,
       consecutiveWrongCount: 0,
       newDeadline: "2026-11-17T12:02:30.000Z",

@@ -34,20 +34,26 @@ function computeServerOffsetMs(serverNowIso: string): number {
 export function PlayView() {
   const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
-  const [question, setQuestion] = useState<PublicQuestion | null>(null);
+  const [queue, setQueue] = useState<PublicQuestion[]>([]);
+  const [queueIndex, setQueueIndex] = useState(0);
   const [deadlineIso, setDeadlineIso] = useState<string | null>(null);
   const [serverOffsetMs, setServerOffsetMs] = useState(0);
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [answeredCount, setAnsweredCount] = useState(0);
-  const [submittingIndex, setSubmittingIndex] = useState<number | null>(null);
+  const [awaitingFinal, setAwaitingFinal] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackBanner | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const feedbackTimeoutRef = useRef<number | null>(null);
+  const submitChainRef = useRef<Promise<void>>(Promise.resolve());
+  const terminatedRef = useRef(false);
+
+  const question = queue[queueIndex] ?? null;
 
   useEffect(() => {
     return () => {
+      terminatedRef.current = true;
       if (feedbackTimeoutRef.current !== null) {
         window.clearTimeout(feedbackTimeoutRef.current);
       }
@@ -58,10 +64,12 @@ export function PlayView() {
     (data: NextQuestionResponse) => {
       setServerOffsetMs(computeServerOffsetMs(data.serverNow));
       if (data.status === "completed") {
+        terminatedRef.current = true;
         router.replace("/result");
         return;
       }
-      setQuestion(data.question);
+      setQueue([data.question, ...(data.upcomingQuestions ?? [])]);
+      setQueueIndex(0);
       setDeadlineIso(data.deadline);
       setScore(data.score);
       setStreak(data.streak);
@@ -122,6 +130,7 @@ export function PlayView() {
         (payload) => {
           const updated = payload.new as SessionRow;
           if (updated.status === "finished") {
+            terminatedRef.current = true;
             router.replace("/result");
           }
         }
@@ -134,6 +143,7 @@ export function PlayView() {
   }, [router]);
 
   const handleTimerExpire = useCallback(async () => {
+    terminatedRef.current = true;
     try {
       await fetch("/api/session/me", { cache: "no-store" });
     } catch {
@@ -142,86 +152,117 @@ export function PlayView() {
     router.replace("/result");
   }, [router]);
 
-  async function handleSelectOption(selectedIndex: number) {
-    if (!question || submittingIndex !== null) return;
-    setSubmittingIndex(selectedIndex);
+  function handleSelectOption(selectedIndex: number) {
+    const currentQuestion = queue[queueIndex];
+    if (!currentQuestion || awaitingFinal || terminatedRef.current) return;
+
+    const nextIndex = queueIndex + 1;
+    const hasMoreBuffered = nextIndex < queue.length;
+
     setError(null);
+    if (hasMoreBuffered) {
+      // Advance immediately to the next pre-loaded PublicQuestion (0ms buffer)
+      setQueueIndex(nextIndex);
+    } else {
+      setAwaitingFinal(true);
+    }
 
-    try {
-      const res = await fetch("/api/play/answer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          questionId: question.id,
-          selectedIndex,
-        }),
-      });
+    submitChainRef.current = submitChainRef.current.then(async () => {
+      if (terminatedRef.current) return;
 
-      if (!res.ok) {
-        const errBody = (await res.json().catch(() => null)) as ApiErrorEnvelope | null;
-        const code = errBody?.error?.code;
-        if (code === "TIME_EXPIRED" || code === "ALREADY_PLAYED") {
+      try {
+        const res = await fetch("/api/play/answer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            questionId: currentQuestion.id,
+            selectedIndex,
+          }),
+        });
+
+        if (terminatedRef.current) return;
+
+        if (!res.ok) {
+          const errBody = (await res.json().catch(() => null)) as ApiErrorEnvelope | null;
+          const code = errBody?.error?.code;
+          if (code === "TIME_EXPIRED" || code === "ALREADY_PLAYED") {
+            terminatedRef.current = true;
+            router.replace("/result");
+            return;
+          }
+          if (code === "NOT_RUNNING") {
+            terminatedRef.current = true;
+            router.replace("/lobby");
+            return;
+          }
+          setError(errBody?.error?.message ?? "Unable to record answer.");
+          setAwaitingFinal(false);
+          return;
+        }
+
+        const data = (await res.json()) as SubmitAnswerResponse;
+        if (terminatedRef.current) return;
+
+        setServerOffsetMs(computeServerOffsetMs(data.serverNow));
+        setScore(data.newScore);
+        setStreak(data.newStreak);
+        setAnsweredCount(data.answeredCount);
+        setDeadlineIso(data.newDeadline);
+
+        if (data.status === "exploded" || data.status === "completed") {
+          terminatedRef.current = true;
           router.replace("/result");
           return;
         }
-        if (code === "NOT_RUNNING") {
-          router.replace("/lobby");
-          return;
+
+        if (feedbackTimeoutRef.current !== null) {
+          window.clearTimeout(feedbackTimeoutRef.current);
         }
-        setError(errBody?.error?.message ?? "Unable to submit answer.");
-        setSubmittingIndex(null);
-        return;
+
+        if (data.correct) {
+          playSoundEffect("correct");
+          const bonusNote =
+            data.streakBonusAwarded > 0
+              ? ` · +${data.streakBonusAwarded} streak bonus!`
+              : "";
+          setFeedback({
+            tone: "correct",
+            text: `Correct! +${data.bonusTimeSecondsApplied}s fuse${bonusNote}`,
+          });
+        } else if (!data.alreadyAnswered) {
+          playSoundEffect("wrong");
+          const multiplierNote =
+            data.consecutiveWrongCount > 1
+              ? ` (${data.consecutiveWrongCount}x streak penalty!)`
+              : "";
+          setFeedback({
+            tone: "wrong",
+            text: `Wrong! -${data.penaltySecondsApplied}s fuse${multiplierNote}`,
+          });
+        }
+
+        feedbackTimeoutRef.current = window.setTimeout(() => {
+          setFeedback(null);
+          feedbackTimeoutRef.current = null;
+        }, 950);
+
+        if (!hasMoreBuffered) {
+          if (data.nextQuestion) {
+            setQueue((prev) => [...prev, data.nextQuestion!]);
+            setQueueIndex(nextIndex);
+            setAwaitingFinal(false);
+          } else {
+            terminatedRef.current = true;
+            router.replace("/result");
+          }
+        }
+      } catch {
+        if (!terminatedRef.current) {
+          setError("Network error recording answer.");
+          setAwaitingFinal(false);
+        }
       }
-
-      const data = (await res.json()) as SubmitAnswerResponse;
-      setServerOffsetMs(computeServerOffsetMs(data.serverNow));
-      setScore(data.newScore);
-      setStreak(data.newStreak);
-      setAnsweredCount(data.answeredCount);
-      setDeadlineIso(data.newDeadline);
-
-      if (data.status === "exploded" || data.status === "completed" || !data.nextQuestion) {
-        router.replace("/result");
-        return;
-      }
-
-      if (feedbackTimeoutRef.current !== null) {
-        window.clearTimeout(feedbackTimeoutRef.current);
-      }
-
-      if (data.correct) {
-        playSoundEffect("correct");
-        const bonusNote =
-          data.streakBonusAwarded > 0
-            ? ` · +${data.streakBonusAwarded} streak bonus!`
-            : "";
-        setFeedback({
-          tone: "correct",
-          text: `Correct! +30s fuse${bonusNote}`,
-        });
-      } else if (!data.alreadyAnswered) {
-        playSoundEffect("wrong");
-        const multiplierNote =
-          data.consecutiveWrongCount > 1
-            ? ` (${data.consecutiveWrongCount}x streak penalty!)`
-            : "";
-        setFeedback({
-          tone: "wrong",
-          text: `Wrong! -${data.penaltySecondsApplied}s fuse${multiplierNote}`,
-        });
-      }
-
-      setQuestion(data.nextQuestion);
-      setSubmittingIndex(null);
-
-      feedbackTimeoutRef.current = window.setTimeout(() => {
-        setFeedback(null);
-        feedbackTimeoutRef.current = null;
-      }, 950);
-    } catch {
-      setError("Network error submitting answer. Retry your selection.");
-      setSubmittingIndex(null);
-    }
+    });
   }
 
   if (loading) {
@@ -291,7 +332,7 @@ export function PlayView() {
                       : { y: 0, scale: 1 }
                 }
                 exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                transition={{ duration: prefersReducedMotion ? 0.01 : 0.2 }}
+                transition={{ duration: prefersReducedMotion ? 0.01 : 0.16 }}
                 className={`rounded-2xl px-4 py-3 text-sm font-bold border-2 ${
                   feedback.tone === "correct"
                     ? "bg-surface border-success-green text-success-green"
@@ -314,9 +355,9 @@ export function PlayView() {
           {question ? (
             <motion.div
               key={question.id}
-              initial={prefersReducedMotion ? false : { y: 6 }}
+              initial={prefersReducedMotion ? false : { y: 5 }}
               animate={{ y: 0 }}
-              transition={{ duration: prefersReducedMotion ? 0.01 : 0.16 }}
+              transition={{ duration: prefersReducedMotion ? 0.01 : 0.1 }}
               className="rounded-2xl bg-bg-primary border-2 border-border-ash p-5 sm:p-6 space-y-5"
             >
               <h2 className="text-xl sm:text-2xl font-bold leading-snug text-text-primary">
@@ -325,27 +366,16 @@ export function PlayView() {
 
               <div className="grid grid-cols-1 gap-3">
                 {question.options.map((option, idx) => {
-                  const isSelected = submittingIndex === idx;
                   const letter = OPTION_LETTERS[idx] ?? String(idx + 1);
                   return (
                     <button
                       key={`${question.id}-${idx}`}
                       type="button"
-                      disabled={submittingIndex !== null}
-                      onClick={() => void handleSelectOption(idx)}
-                      className={`min-h-12 w-full rounded-2xl border-2 px-4 py-3 text-left flex items-center gap-3.5 transition-transform active:scale-[0.99] cursor-pointer disabled:cursor-not-allowed ${
-                        isSelected
-                          ? "bg-accent-orange border-accent-orange text-bg-primary font-bold"
-                          : "bg-surface border-border-ash text-text-primary hover:border-accent-orange disabled:opacity-70"
-                      }`}
+                      disabled={awaitingFinal}
+                      onClick={() => handleSelectOption(idx)}
+                      className="min-h-12 w-full rounded-2xl border-2 px-4 py-3 text-left flex items-center gap-3.5 transition-transform active:scale-[0.99] cursor-pointer bg-surface border-border-ash text-text-primary hover:border-accent-orange disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                      <span
-                        className={`font-display font-bold tabular-nums text-base shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${
-                          isSelected
-                            ? "bg-bg-primary text-accent-orange"
-                            : "bg-surface-elevated text-accent-yellow"
-                        }`}
-                      >
+                      <span className="font-display font-bold tabular-nums text-base shrink-0 w-8 h-8 rounded-xl flex items-center justify-center bg-surface-elevated text-accent-yellow">
                         {letter}
                       </span>
                       <span className="text-base font-semibold leading-snug">
@@ -361,7 +391,9 @@ export function PlayView() {
                   {question.category}
                 </ComicSticker>
                 <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  Difficulty: {question.difficulty}
+                  {awaitingFinal
+                    ? "Finishing run..."
+                    : `Difficulty: ${question.difficulty}`}
                 </span>
               </div>
             </motion.div>

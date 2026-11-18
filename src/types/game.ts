@@ -94,6 +94,7 @@ export type NextQuestionResponse =
   | {
       status: "playing";
       question: PublicQuestion;
+      upcomingQuestions?: PublicQuestion[];
       serverNow: string;
       deadline: string;
       score: number;
@@ -114,6 +115,7 @@ export interface SubmitAnswerResponse {
   newStreak: number;
   bestStreak: number;
   streakBonusAwarded: number;
+  bonusTimeSecondsApplied: number;
   penaltySecondsApplied: number;
   consecutiveWrongCount: number;
   newDeadline: string;

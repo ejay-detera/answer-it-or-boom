@@ -36,7 +36,7 @@
 
 ### What we are building
 
-**Answer It! or BOOM!** is a fast, funny, real-time web icebreaker quiz game for software developer cadet onboarding. Every cadet races a ticking bomb: starting with a **120-second** base fuse, answering easy multiple-choice questions adds **+10 points** (plus milestone streak bonuses) and **+30 seconds** to the bomb timer until the fuse hits `0:00` (BOOM!) or the question pool is exhausted.
+**Answer It! or BOOM!** is a fast, funny, real-time web icebreaker quiz game for software developer cadet onboarding. Every cadet races a ticking bomb: starting with a **60-second** base fuse, answering easy multiple-choice questions adds **+10 points** (plus milestone streak bonuses) and **+10 seconds** to the bomb timer until the fuse hits `0:00` (BOOM!) or the question pool is exhausted.
 
 Architecture & surfaces: **Next.js (App Router, TypeScript)** client & Server Actions/API routes; **Tailwind CSS** + **Framer Motion** (planned for Phase 4); **Supabase** (Postgres + Realtime, planned for Phase 2); **Vercel** hosting. Observed implementation status lives in [`flow.md`](flow.md).
 
@@ -57,8 +57,8 @@ Next.js App Router serves responsive player routes (`/`, `/lobby`, `/play`, `/re
 ### Core workflow at a glance
 
 1. Cadet enters a unique name (`2–20` chars) and joins the waiting lobby (`waiting`).
-2. Facilitator starts the session (`countdown` 3-2-1 → `running`) so all cadets start simultaneously with a `120s` fuse.
-3. Cadet answers easy multiple-choice questions; server validates answers (`+10` pts, streak `+5/+10/+20` at `3/5/10`, `+30s` deadline) without exposing `correct_index`.
+2. Facilitator starts the session (`countdown` 3-2-1 → `running`) so all cadets start simultaneously with a `60s` fuse.
+3. Cadet answers easy multiple-choice questions; server validates answers (`+10` pts, streak `+5/+10/+20` at `3/5/10`, `+10s` deadline) without exposing `correct_index`.
 4. When server `deadline` expires (or facilitator ends early, or pool exhausts), the run ends (`exploded` / `completed`) and final rank appears on `/result` and `/scoreboard`.
 
 ### Scope and status truth table
@@ -168,8 +168,8 @@ Established by `S-01` as **Answer It! or BOOM!** (cartoon bomb icebreaker theme)
 ### 7.2 Tunable Game Parameters
 
 Stored in `src/config/game-config.ts` and persisted per session in `sessions`:
-- Base time: `120s` (`2:00`)
-- Correct bonus: `+30s` and `+10` points
+- Base time: `60s` (`1:00`)
+- Correct bonus: `+10s` and `+10` points
 - Streak milestones (one-time per run): `3 → +5`, `5 → +10`, `10 → +20`
 - Wrong answer: `0` pts, accumulating `-10s` per consecutive miss (`-10s`, `-20s`, `-30s`, reset on right answer)
 - Question mix target: `~70%` easy software dev, `~20%` general/tech culture, `~10%` silly/fun

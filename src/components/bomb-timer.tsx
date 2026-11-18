@@ -14,6 +14,7 @@ function formatClock(remainingMs: number): string {
 export interface BombTimerProps {
   deadlineIso: string;
   serverOffsetMs: number;
+  baseTimeSeconds?: number;
   onExpire: () => void;
 }
 
@@ -21,6 +22,7 @@ export interface BombTimerProps {
 export function BombTimer({
   deadlineIso,
   serverOffsetMs,
+  baseTimeSeconds = GAME_CONFIG.baseTimeSeconds,
   onExpire,
 }: BombTimerProps) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -36,7 +38,7 @@ export function BombTimer({
   useEffect(() => {
     expiredRef.current = false;
     const deadlineMs = Date.parse(deadlineIso);
-    const maxScaleMs = GAME_CONFIG.baseTimeSeconds * 1000;
+    const maxScaleMs = baseTimeSeconds * 1000;
     let rafId = 0;
 
     const tick = () => {
@@ -100,7 +102,7 @@ export function BombTimer({
 
     rafId = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(rafId);
-  }, [deadlineIso, serverOffsetMs]);
+  }, [deadlineIso, serverOffsetMs, baseTimeSeconds]);
 
   return (
     <div
@@ -117,7 +119,7 @@ export function BombTimer({
             ref={clockRef}
             className="font-display font-bold tabular-nums text-5xl sm:text-6xl leading-none tracking-tight text-text-primary"
           >
-            2:00
+            {formatClock(baseTimeSeconds * 1000)}
           </span>
         </div>
         <div className="h-3.5 w-full rounded-xl bg-surface-elevated overflow-hidden border border-border-ash">

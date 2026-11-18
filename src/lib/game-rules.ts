@@ -19,6 +19,7 @@ export interface EvaluateAnswerResult {
   newStreak: number;
   bestStreak: number;
   streakBonusAwarded: number;
+  bonusTimeSecondsApplied: number;
   penaltySecondsApplied: number;
   consecutiveWrongCount: number;
   newDeadline: string;
@@ -54,6 +55,7 @@ export function evaluateAnswer(
       newStreak: 0,
       bestStreak: input.bestStreak,
       streakBonusAwarded: 0,
+      bonusTimeSecondsApplied: 0,
       penaltySecondsApplied,
       consecutiveWrongCount,
       newDeadline: new Date(deadlineMs - penaltyMs).toISOString(),
@@ -72,6 +74,7 @@ export function evaluateAnswer(
     newStreak,
     bestStreak,
     streakBonusAwarded,
+    bonusTimeSecondsApplied: input.session.bonus_time_seconds,
     penaltySecondsApplied: 0,
     consecutiveWrongCount: 0,
     newDeadline: new Date(

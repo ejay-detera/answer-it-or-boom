@@ -285,6 +285,20 @@ function toPublicQuestion(question: QuestionRow): PublicQuestion {
   };
 }
 
+function shufflePublicQuestions(
+  activeQuestions: readonly QuestionRow[],
+  seenIds: ReadonlySet<string>
+): PublicQuestion[] {
+  const unseen = activeQuestions
+    .filter((q) => !seenIds.has(q.id))
+    .map(toPublicQuestion);
+  for (let i = unseen.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [unseen[i], unseen[j]] = [unseen[j], unseen[i]];
+  }
+  return unseen;
+}
+
 function pickNextPublicQuestion(
   activeQuestions: readonly QuestionRow[],
   seenIds: ReadonlySet<string>
@@ -306,26 +320,29 @@ function countTrailingWrong(
   return count;
 }
 
-/** Returns a random unseen active question (without `correct_index`) or marks the player completed. */
+/** Returns shuffled unseen active questions (without `correct_index`) or marks the player completed. */
 export async function getNextQuestion(
   repo: GameRepository,
   playerId: string | null | undefined,
   now: Date = new Date()
 ): Promise<ServiceResult<NextQuestionResponse>> {
-  const ctx = await loadPlayingPlayerContext(repo, playerId, now);
+  if (!playerId) {
+    return fail(401, "UNAUTHORIZED", "Missing player session.");
+  }
+
+  const [ctx, activeQuestions, history] = await Promise.all([
+    loadPlayingPlayerContext(repo, playerId, now),
+    repo.listActiveQuestions(),
+    repo.listPlayerAnswerHistory(playerId),
+  ]);
   if (!ctx.ok) return ctx;
 
   const { player } = ctx;
-  const [activeQuestions, history] = await Promise.all([
-    repo.listActiveQuestions(),
-    repo.listPlayerAnswerHistory(player.id),
-  ]);
-
   const seen = new Set(history.map((h) => h.questionId));
-  const nextQuestion = pickNextPublicQuestion(activeQuestions, seen);
+  const shuffled = shufflePublicQuestions(activeQuestions, seen);
   const serverNow = now.toISOString();
 
-  if (!nextQuestion) {
+  if (shuffled.length === 0) {
     await repo.updatePlayerProgress(player.id, {
       status: "completed",
       finished_at: serverNow,
@@ -347,7 +364,8 @@ export async function getNextQuestion(
     status: 200,
     data: {
       status: "playing",
-      question: nextQuestion,
+      question: shuffled[0],
+      upcomingQuestions: shuffled.slice(1),
       serverNow,
       deadline: player.deadline!,
       score: player.score,
@@ -379,14 +397,18 @@ export async function submitAnswer(
     return fail(400, "INVALID_INPUT", "Invalid questionId or selectedIndex.");
   }
 
-  const ctx = await loadPlayingPlayerContext(repo, input.playerId, now);
+  if (!input.playerId) {
+    return fail(401, "UNAUTHORIZED", "Missing player session.");
+  }
+
+  const [ctx, activeQuestions, history] = await Promise.all([
+    loadPlayingPlayerContext(repo, input.playerId, now),
+    repo.listActiveQuestions(),
+    repo.listPlayerAnswerHistory(input.playerId),
+  ]);
   if (!ctx.ok) return ctx;
 
   const { player, session } = ctx;
-  const [activeQuestions, history] = await Promise.all([
-    repo.listActiveQuestions(),
-    repo.listPlayerAnswerHistory(player.id),
-  ]);
 
   const question = activeQuestions.find((q) => q.id === input.questionId);
   if (!question || !question.is_active || input.selectedIndex >= question.options.length) {
@@ -416,6 +438,7 @@ export async function submitAnswer(
         newStreak: player.streak,
         bestStreak: player.best_streak,
         streakBonusAwarded: 0,
+        bonusTimeSecondsApplied: 0,
         penaltySecondsApplied: 0,
         consecutiveWrongCount: countTrailingWrong(history),
         newDeadline: player.deadline!,
@@ -469,6 +492,7 @@ export async function submitAnswer(
       newStreak: evaluated.newStreak,
       bestStreak: evaluated.bestStreak,
       streakBonusAwarded: evaluated.streakBonusAwarded,
+      bonusTimeSecondsApplied: evaluated.bonusTimeSecondsApplied,
       penaltySecondsApplied: evaluated.penaltySecondsApplied,
       consecutiveWrongCount: evaluated.consecutiveWrongCount,
       newDeadline: evaluated.newDeadline,
