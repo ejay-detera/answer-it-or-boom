@@ -69,14 +69,18 @@ export function createSupabaseGameRepository(): GameRepository {
       return data;
     },
 
-    async listAnsweredQuestionIds(playerId) {
+    async listPlayerAnswerHistory(playerId) {
       const { data, error } = await db
         .from("player_answers")
-        .select("question_id")
+        .select("question_id, is_correct")
         .eq("player_id", playerId)
-        .returns<Array<{ question_id: string }>>();
+        .order("answered_at", { ascending: true })
+        .returns<Array<{ question_id: string; is_correct: boolean }>>();
       if (error) throw error;
-      return (data ?? []).map((row) => row.question_id);
+      return (data ?? []).map((row) => ({
+        questionId: row.question_id,
+        isCorrect: row.is_correct,
+      }));
     },
 
     async insertPlayerAnswer(row) {

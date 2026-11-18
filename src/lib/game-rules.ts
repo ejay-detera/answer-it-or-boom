@@ -6,6 +6,7 @@ export interface EvaluateAnswerInput {
   currentScore: number;
   currentStreak: number;
   bestStreak: number;
+  consecutiveWrongCount?: number;
   currentDeadlineIso: string;
   session: Pick<
     SessionRow,
@@ -18,6 +19,8 @@ export interface EvaluateAnswerResult {
   newStreak: number;
   bestStreak: number;
   streakBonusAwarded: number;
+  penaltySecondsApplied: number;
+  consecutiveWrongCount: number;
   newDeadline: string;
 }
 
@@ -39,12 +42,20 @@ export function evaluateAnswer(
   const deadlineMs = Date.parse(input.currentDeadlineIso);
 
   if (!input.isCorrect) {
-    const penaltyMs = input.session.wrong_answer_penalty_seconds * 1000;
+    const consecutiveWrongCount = (input.consecutiveWrongCount ?? 0) + 1;
+    const basePenaltySeconds =
+      input.session.wrong_answer_penalty_seconds > 0
+        ? input.session.wrong_answer_penalty_seconds
+        : GAME_CONFIG.wrongAnswerPenaltySeconds;
+    const penaltySecondsApplied = basePenaltySeconds * consecutiveWrongCount;
+    const penaltyMs = penaltySecondsApplied * 1000;
     return {
       newScore: input.currentScore,
       newStreak: 0,
       bestStreak: input.bestStreak,
       streakBonusAwarded: 0,
+      penaltySecondsApplied,
+      consecutiveWrongCount,
       newDeadline: new Date(deadlineMs - penaltyMs).toISOString(),
     };
   }
@@ -61,6 +72,8 @@ export function evaluateAnswer(
     newStreak,
     bestStreak,
     streakBonusAwarded,
+    penaltySecondsApplied: 0,
+    consecutiveWrongCount: 0,
     newDeadline: new Date(
       deadlineMs + input.session.bonus_time_seconds * 1000
     ).toISOString(),

@@ -34,7 +34,9 @@ export interface GameRepository {
   createPlayer(sessionId: string, name: string): Promise<PlayerRow>;
   listActiveQuestions(): Promise<QuestionRow[]>;
   getQuestionById(questionId: string): Promise<QuestionRow | null>;
-  listAnsweredQuestionIds(playerId: string): Promise<string[]>;
+  listPlayerAnswerHistory(
+    playerId: string
+  ): Promise<Array<{ questionId: string; isCorrect: boolean }>>;
   insertPlayerAnswer(row: {
     playerId: string;
     questionId: string;
@@ -283,6 +285,27 @@ function toPublicQuestion(question: QuestionRow): PublicQuestion {
   };
 }
 
+function pickNextPublicQuestion(
+  activeQuestions: readonly QuestionRow[],
+  seenIds: ReadonlySet<string>
+): PublicQuestion | null {
+  const unseen = activeQuestions.filter((q) => !seenIds.has(q.id));
+  if (unseen.length === 0) return null;
+  const pick = unseen[Math.floor(Math.random() * unseen.length)];
+  return toPublicQuestion(pick);
+}
+
+function countTrailingWrong(
+  history: ReadonlyArray<{ isCorrect: boolean }>
+): number {
+  let count = 0;
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].isCorrect) break;
+    count += 1;
+  }
+  return count;
+}
+
 /** Returns a random unseen active question (without `correct_index`) or marks the player completed. */
 export async function getNextQuestion(
   repo: GameRepository,
@@ -293,16 +316,16 @@ export async function getNextQuestion(
   if (!ctx.ok) return ctx;
 
   const { player } = ctx;
-  const [activeQuestions, answeredIds] = await Promise.all([
+  const [activeQuestions, history] = await Promise.all([
     repo.listActiveQuestions(),
-    repo.listAnsweredQuestionIds(player.id),
+    repo.listPlayerAnswerHistory(player.id),
   ]);
 
-  const seen = new Set(answeredIds);
-  const unseen = activeQuestions.filter((q) => !seen.has(q.id));
+  const seen = new Set(history.map((h) => h.questionId));
+  const nextQuestion = pickNextPublicQuestion(activeQuestions, seen);
   const serverNow = now.toISOString();
 
-  if (unseen.length === 0) {
+  if (!nextQuestion) {
     await repo.updatePlayerProgress(player.id, {
       status: "completed",
       finished_at: serverNow,
@@ -319,13 +342,12 @@ export async function getNextQuestion(
     };
   }
 
-  const pick = unseen[Math.floor(Math.random() * unseen.length)];
   return {
     ok: true,
     status: 200,
     data: {
       status: "playing",
-      question: toPublicQuestion(pick),
+      question: nextQuestion,
       serverNow,
       deadline: player.deadline!,
       score: player.score,
@@ -341,7 +363,7 @@ export interface SubmitAnswerInput {
   selectedIndex: unknown;
 }
 
-/** Validates an answer submission server-side, enforces idempotency, and updates player state. */
+/** Validates an answer submission server-side, enforces idempotency, and returns the next question in one trip. */
 export async function submitAnswer(
   repo: GameRepository,
   input: SubmitAnswerInput,
@@ -361,7 +383,12 @@ export async function submitAnswer(
   if (!ctx.ok) return ctx;
 
   const { player, session } = ctx;
-  const question = await repo.getQuestionById(input.questionId);
+  const [activeQuestions, history] = await Promise.all([
+    repo.listActiveQuestions(),
+    repo.listPlayerAnswerHistory(player.id),
+  ]);
+
+  const question = activeQuestions.find((q) => q.id === input.questionId);
   if (!question || !question.is_active || input.selectedIndex >= question.options.length) {
     return fail(400, "INVALID_INPUT", "Question or selected option is invalid.");
   }
@@ -378,6 +405,7 @@ export async function submitAnswer(
   });
 
   if (insertStatus === "duplicate") {
+    const seen = new Set(history.map((h) => h.questionId));
     return {
       ok: true,
       status: 200,
@@ -388,24 +416,38 @@ export async function submitAnswer(
         newStreak: player.streak,
         bestStreak: player.best_streak,
         streakBonusAwarded: 0,
+        penaltySecondsApplied: 0,
+        consecutiveWrongCount: countTrailingWrong(history),
         newDeadline: player.deadline!,
         serverNow,
         status: player.status,
+        nextQuestion: pickNextPublicQuestion(activeQuestions, seen),
+        answeredCount: seen.size,
       },
     };
   }
 
+  const priorConsecutiveWrong = countTrailingWrong(history);
   const evaluated = evaluateAnswer({
     isCorrect,
     currentScore: player.score,
     currentStreak: player.streak,
     bestStreak: player.best_streak,
+    consecutiveWrongCount: priorConsecutiveWrong,
     currentDeadlineIso: player.deadline!,
     session,
   });
 
   const penaltyExpired = isDeadlineExpired(evaluated.newDeadline, now);
-  const nextStatus = penaltyExpired ? "exploded" : "playing";
+  const seenAfter = new Set([...history.map((h) => h.questionId), question.id]);
+  const nextQuestion = penaltyExpired
+    ? null
+    : pickNextPublicQuestion(activeQuestions, seenAfter);
+  const nextStatus = penaltyExpired
+    ? "exploded"
+    : nextQuestion === null
+      ? "completed"
+      : "playing";
 
   await repo.updatePlayerProgress(player.id, {
     score: evaluated.newScore,
@@ -414,7 +456,7 @@ export async function submitAnswer(
     streak: evaluated.newStreak,
     best_streak: evaluated.bestStreak,
     deadline: evaluated.newDeadline,
-    ...(penaltyExpired ? { status: "exploded", finished_at: serverNow } : {}),
+    ...(nextStatus !== "playing" ? { status: nextStatus, finished_at: serverNow } : {}),
   });
 
   return {
@@ -427,9 +469,13 @@ export async function submitAnswer(
       newStreak: evaluated.newStreak,
       bestStreak: evaluated.bestStreak,
       streakBonusAwarded: evaluated.streakBonusAwarded,
+      penaltySecondsApplied: evaluated.penaltySecondsApplied,
+      consecutiveWrongCount: evaluated.consecutiveWrongCount,
       newDeadline: evaluated.newDeadline,
       serverNow,
       status: nextStatus,
+      nextQuestion,
+      answeredCount: seenAfter.size,
     },
   };
 }

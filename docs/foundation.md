@@ -171,7 +171,7 @@ Stored in `src/config/game-config.ts` and persisted per session in `sessions`:
 - Base time: `120s` (`2:00`)
 - Correct bonus: `+30s` and `+10` points
 - Streak milestones (one-time per run): `3 → +5`, `5 → +10`, `10 → +20`
-- Wrong answer: `0` pts, `0s` penalty default (configurable)
+- Wrong answer: `0` pts, accumulating `-10s` per consecutive miss (`-10s`, `-20s`, `-30s`, reset on right answer)
 - Question mix target: `~70%` easy software dev, `~20%` general/tech culture, `~10%` silly/fun
 
 ### 7.3 What success looks like

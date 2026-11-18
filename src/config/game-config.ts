@@ -2,7 +2,7 @@ export const GAME_CONFIG = {
   baseTimeSeconds: 120,
   bonusTimeSeconds: 30,
   pointsPerCorrect: 10,
-  wrongAnswerPenaltySeconds: 0,
+  wrongAnswerPenaltySeconds: 10,
   countdownSeconds: 3,
   playerNameMin: 2,
   playerNameMax: 20,

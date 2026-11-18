@@ -34,6 +34,8 @@ describe("evaluateAnswer (T-001)", () => {
       newStreak: 1,
       bestStreak: 1,
       streakBonusAwarded: 0,
+      penaltySecondsApplied: 0,
+      consecutiveWrongCount: 0,
       newDeadline: "2026-11-17T12:02:30.000Z",
     });
   });
@@ -101,17 +103,61 @@ describe("evaluateAnswer (T-001)", () => {
     expect(hit10.newScore).toBe(165);
   });
 
-  it("applies optional wrong_answer_penalty_seconds when configured", () => {
+  it("applies accumulating wrong-answer penalty (-10s, -20s, -30s) and resets after a correct answer", () => {
+    const wrong1 = evaluateAnswer({
+      isCorrect: false,
+      currentScore: 10,
+      currentStreak: 1,
+      bestStreak: 1,
+      consecutiveWrongCount: 0,
+      currentDeadlineIso: "2026-11-17T12:02:00.000Z",
+      session: baseSession,
+    });
+    expect(wrong1.penaltySecondsApplied).toBe(10);
+    expect(wrong1.consecutiveWrongCount).toBe(1);
+    expect(wrong1.newDeadline).toBe("2026-11-17T12:01:50.000Z");
+
+    const wrong2 = evaluateAnswer({
+      isCorrect: false,
+      currentScore: 10,
+      currentStreak: 0,
+      bestStreak: 1,
+      consecutiveWrongCount: wrong1.consecutiveWrongCount,
+      currentDeadlineIso: wrong1.newDeadline,
+      session: baseSession,
+    });
+    expect(wrong2.penaltySecondsApplied).toBe(20);
+    expect(wrong2.consecutiveWrongCount).toBe(2);
+    expect(wrong2.newDeadline).toBe("2026-11-17T12:01:30.000Z");
+
+    const right = evaluateAnswer({
+      isCorrect: true,
+      currentScore: 10,
+      currentStreak: 0,
+      bestStreak: 1,
+      consecutiveWrongCount: wrong2.consecutiveWrongCount,
+      currentDeadlineIso: wrong2.newDeadline,
+      session: baseSession,
+    });
+    expect(right.penaltySecondsApplied).toBe(0);
+    expect(right.consecutiveWrongCount).toBe(0);
+    expect(right.newDeadline).toBe("2026-11-17T12:02:00.000Z");
+  });
+
+  it("applies custom positive wrong_answer_penalty_seconds when configured", () => {
     const result = evaluateAnswer({
       isCorrect: false,
       currentScore: 10,
       currentStreak: 1,
       bestStreak: 1,
+      consecutiveWrongCount: 1,
       currentDeadlineIso: "2026-11-17T12:02:00.000Z",
       session: { ...baseSession, wrong_answer_penalty_seconds: 5 },
     });
 
-    expect(result.newDeadline).toBe("2026-11-17T12:01:55.000Z");
+    expect(result.penaltySecondsApplied).toBe(10);
+    expect(result.consecutiveWrongCount).toBe(2);
+    expect(result.newDeadline).toBe("2026-11-17T12:01:50.000Z");
     expect(result.newScore).toBe(10);
     expect(result.newStreak).toBe(0);
   });

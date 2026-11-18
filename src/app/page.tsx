@@ -25,10 +25,10 @@ export default function HomePage() {
             <ComicSticker tone="green" tilt="right">
               +{GAME_CONFIG.bonusTimeSeconds}s / RIGHT
             </ComicSticker>
-            <ComicSticker tone="orange" tilt="left">
-              +{GAME_CONFIG.pointsPerCorrect} PTS
+            <ComicSticker tone="red" tilt="left">
+              -{GAME_CONFIG.wrongAnswerPenaltySeconds}s+ / WRONG
             </ComicSticker>
-            <ComicSticker tone="red" tilt="right">
+            <ComicSticker tone="orange" tilt="right">
               1 TRY ONLY
             </ComicSticker>
           </div>
@@ -44,15 +44,19 @@ export default function HomePage() {
               <span className="font-display font-bold tabular-nums text-accent-yellow">
                 {GAME_CONFIG.baseTimeSeconds}s
               </span>
-              . Right answers extend your fuse by{" "}
+              . Right answers add{" "}
               <span className="font-display font-bold tabular-nums text-success-green">
                 +{GAME_CONFIG.bonusTimeSeconds}s
               </span>{" "}
-              and score{" "}
+              and{" "}
               <span className="font-display font-bold tabular-nums text-accent-orange">
                 +{GAME_CONFIG.pointsPerCorrect} pts
+              </span>
+              . Wrong answers cut{" "}
+              <span className="font-display font-bold tabular-nums text-danger-red">
+                -{GAME_CONFIG.wrongAnswerPenaltySeconds}s
               </span>{" "}
-              plus streak bonuses.
+              (stacking on consecutive misses).
             </p>
           </div>
 

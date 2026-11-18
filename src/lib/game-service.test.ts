@@ -75,8 +75,10 @@ function makeInMemoryRepo(seed?: {
     async getQuestionById(questionId) {
       return questions.find((q) => q.id === questionId) ?? null;
     },
-    async listAnsweredQuestionIds(playerId) {
-      return answers.filter((a) => a.playerId === playerId).map((a) => a.questionId);
+    async listPlayerAnswerHistory(playerId) {
+      return answers
+        .filter((a) => a.playerId === playerId)
+        .map((a) => ({ questionId: a.questionId, isCorrect: a.isCorrect }));
     },
     async insertPlayerAnswer(row) {
       if (
@@ -335,9 +337,19 @@ describe("submitAnswer (T-001, T-003, T-004 / API-03)", () => {
         newStreak: 1,
         bestStreak: 1,
         streakBonusAwarded: 0,
+        penaltySecondsApplied: 0,
+        consecutiveWrongCount: 0,
         newDeadline: "2026-11-17T12:03:00.000Z",
         serverNow: "2026-11-17T12:01:00.000Z",
         status: "playing",
+        nextQuestion: {
+          id: "q-2",
+          question: "Which HTTP code means Not Found?",
+          options: ["200", "301", "404", "500"],
+          category: "software",
+          difficulty: "easy",
+        },
+        answeredCount: 1,
       },
     });
     expect(repo.players[0].correct_count).toBe(1);
@@ -358,13 +370,23 @@ describe("submitAnswer (T-001, T-003, T-004 / API-03)", () => {
         newStreak: 1,
         bestStreak: 1,
         streakBonusAwarded: 0,
+        penaltySecondsApplied: 0,
+        consecutiveWrongCount: 0,
         newDeadline: "2026-11-17T12:03:00.000Z",
         serverNow: "2026-11-17T12:01:05.000Z",
         status: "playing",
+        nextQuestion: {
+          id: "q-2",
+          question: "Which HTTP code means Not Found?",
+          options: ["200", "301", "404", "500"],
+          category: "software",
+          difficulty: "easy",
+        },
+        answeredCount: 1,
       },
     });
 
-    // Wrong answer on q-2 resets streak to 0, keeps bestStreak=1
+    // Wrong answer on last active q-2 deducts -10s and marks run completed in one trip
     const wrong = await submitAnswer(
       repo,
       { playerId: "p-1", questionId: "q-2", selectedIndex: 0 },
@@ -379,9 +401,77 @@ describe("submitAnswer (T-001, T-003, T-004 / API-03)", () => {
         newScore: 10,
         newStreak: 0,
         bestStreak: 1,
+        penaltySecondsApplied: 10,
+        consecutiveWrongCount: 1,
+        newDeadline: "2026-11-17T12:02:50.000Z",
+        status: "completed",
+        nextQuestion: null,
+        answeredCount: 2,
       },
     });
     expect(repo.players[0].wrong_count).toBe(1);
+    expect(repo.players[0].status).toBe("completed");
+  });
+
+  it("accumulates consecutive wrong penalties (-10s, -20s) and explodes if deadline drops past now", async () => {
+    const extraQuestions: QuestionRow[] = [
+      ...sampleQuestions,
+      {
+        id: "q-3",
+        question: "What does CSS stand for?",
+        options: ["Cascading Style Sheets", "Code Style System"],
+        correct_index: 0,
+        category: "software",
+        difficulty: "easy",
+        is_active: true,
+      },
+    ];
+    const repo = makeInMemoryRepo({
+      session: runningSession,
+      players: [
+        {
+          ...playingPlayer,
+          deadline: "2026-11-17T12:01:25.000Z",
+        },
+      ],
+      questions: extraQuestions,
+    });
+
+    // 1st wrong at 12:01:00 -> -10s => 12:01:15 (still playing)
+    const w1 = await submitAnswer(
+      repo,
+      { playerId: "p-1", questionId: "q-1", selectedIndex: 1 },
+      new Date("2026-11-17T12:01:00.000Z")
+    );
+    expect(w1).toMatchObject({
+      ok: true,
+      data: {
+        correct: false,
+        penaltySecondsApplied: 10,
+        consecutiveWrongCount: 1,
+        newDeadline: "2026-11-17T12:01:15.000Z",
+        status: "playing",
+      },
+    });
+
+    // 2nd consecutive wrong at 12:01:02 -> -20s => 12:00:55 < 12:01:02 => exploded immediately
+    const w2 = await submitAnswer(
+      repo,
+      { playerId: "p-1", questionId: "q-2", selectedIndex: 0 },
+      new Date("2026-11-17T12:01:02.000Z")
+    );
+    expect(w2).toMatchObject({
+      ok: true,
+      data: {
+        correct: false,
+        penaltySecondsApplied: 20,
+        consecutiveWrongCount: 2,
+        newDeadline: "2026-11-17T12:00:55.000Z",
+        status: "exploded",
+        nextQuestion: null,
+      },
+    });
+    expect(repo.players[0].status).toBe("exploded");
   });
 
   it("rejects out-of-range selectedIndex, expired deadline, and already-finished players", async () => {

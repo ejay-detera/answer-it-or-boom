@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BombTimer } from "@/components/bomb-timer";
@@ -44,6 +44,15 @@ export function PlayView() {
   const [feedback, setFeedback] = useState<FeedbackBanner | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const feedbackTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimeoutRef.current !== null) {
+        window.clearTimeout(feedbackTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const applyQuestionPayload = useCallback(
     (data: NextQuestionResponse) => {
@@ -61,37 +70,6 @@ export function PlayView() {
     },
     [router]
   );
-
-  const fetchQuestion = useCallback(async () => {
-    try {
-      const res = await fetch("/api/play/question", { cache: "no-store" });
-      if (!res.ok) {
-        const errBody = (await res.json().catch(() => null)) as ApiErrorEnvelope | null;
-        const code = errBody?.error?.code;
-        if (code === "UNAUTHORIZED") {
-          router.replace("/");
-          return;
-        }
-        if (code === "NOT_RUNNING") {
-          router.replace("/lobby");
-          return;
-        }
-        if (code === "ALREADY_PLAYED" || code === "TIME_EXPIRED") {
-          router.replace("/result");
-          return;
-        }
-        setError(errBody?.error?.message ?? "Unable to load question.");
-        return;
-      }
-
-      const data = (await res.json()) as NextQuestionResponse;
-      applyQuestionPayload(data);
-    } catch {
-      setError("Connection issue loading question.");
-    } finally {
-      setLoading(false);
-    }
-  }, [applyQuestionPayload, router]);
 
   useEffect(() => {
     let active = true;
@@ -199,11 +177,16 @@ export function PlayView() {
       setServerOffsetMs(computeServerOffsetMs(data.serverNow));
       setScore(data.newScore);
       setStreak(data.newStreak);
+      setAnsweredCount(data.answeredCount);
       setDeadlineIso(data.newDeadline);
 
-      if (data.status === "exploded" || data.status === "completed") {
+      if (data.status === "exploded" || data.status === "completed" || !data.nextQuestion) {
         router.replace("/result");
         return;
+      }
+
+      if (feedbackTimeoutRef.current !== null) {
+        window.clearTimeout(feedbackTimeoutRef.current);
       }
 
       if (data.correct) {
@@ -216,19 +199,25 @@ export function PlayView() {
           tone: "correct",
           text: `Correct! +30s fuse${bonusNote}`,
         });
-      } else {
+      } else if (!data.alreadyAnswered) {
         playSoundEffect("wrong");
+        const multiplierNote =
+          data.consecutiveWrongCount > 1
+            ? ` (${data.consecutiveWrongCount}x streak penalty!)`
+            : "";
         setFeedback({
           tone: "wrong",
-          text: "Not quite — streak reset",
+          text: `Wrong! -${data.penaltySecondsApplied}s fuse${multiplierNote}`,
         });
       }
 
-      window.setTimeout(() => {
+      setQuestion(data.nextQuestion);
+      setSubmittingIndex(null);
+
+      feedbackTimeoutRef.current = window.setTimeout(() => {
         setFeedback(null);
-        setSubmittingIndex(null);
-        void fetchQuestion();
-      }, 350);
+        feedbackTimeoutRef.current = null;
+      }, 950);
     } catch {
       setError("Network error submitting answer. Retry your selection.");
       setSubmittingIndex(null);

@@ -69,8 +69,8 @@ sequenceDiagram
   SA-->>UI: { questionId, text, options, serverNow, deadline }
   C->>UI: Pick option
   UI->>SA: submitAnswer(playerId, questionId, selectedIndex)
-  SA->>DB: Verify now <= deadline, insert player_answers, update score/streak/deadline
-  SA-->>UI: { correct, newScore, newStreak, newDeadline, status }
+  SA->>DB: Verify now <= deadline, insert player_answers, update score/streak/deadline (-10s*consecutiveWrong)
+  SA-->>UI: { correct, newScore, newStreak, penaltySecondsApplied, newDeadline, status, nextQuestion }
 ```
 
 ### 3.2 Background / Expiry Handling (⬜ Planned)

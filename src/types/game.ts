@@ -114,7 +114,11 @@ export interface SubmitAnswerResponse {
   newStreak: number;
   bestStreak: number;
   streakBonusAwarded: number;
+  penaltySecondsApplied: number;
+  consecutiveWrongCount: number;
   newDeadline: string;
   serverNow: string;
   status: PlayerStatus;
+  nextQuestion: PublicQuestion | null;
+  answeredCount: number;
 }

@@ -53,8 +53,8 @@
 
 1. Read `player_id` from cookie; load player and session via `service_role`. Reject if `player.status !== 'playing'` or `session.status !== 'running'`.
 2. Check server clock: if `now > player.deadline`, mark player `exploded` (`finished_at = now`) and return `409 TIME_EXPIRED`.
-3. Look up `questions.correct_index` server-side; insert `(player_id, question_id, selected_index, is_correct)` (on `23505` duplicate key, return existing state idempotently).
-4. Compute `newScore`, `newStreak`, `bestStreak`, and `newDeadline` via `src/lib/game-rules.ts`; persist and return `{ correct, newScore, newStreak, streakBonusAwarded, newDeadline, serverNow, status }`.
+3. Look up `questions.correct_index` server-side from active questions; insert `(player_id, question_id, selected_index, is_correct)` (on `23505` duplicate key, return existing state + next unseen question idempotently).
+4. Compute `newScore`, `newStreak`, `bestStreak`, `penaltySecondsApplied` (`-10s` per consecutive wrong answer, reset on correct), `newDeadline`, and `nextQuestion` via `src/lib/game-rules.ts`; persist and return `{ correct, newScore, newStreak, streakBonusAwarded, penaltySecondsApplied, consecutiveWrongCount, newDeadline, serverNow, status, nextQuestion, answeredCount }` in one round-trip.
 
 **Negative test gate:** Verify unauthenticated player, finished player (`exploded`/`completed`), expired deadline, invalid option index, duplicate `questionId` submit, and `correct_index` absence in payload.
 
